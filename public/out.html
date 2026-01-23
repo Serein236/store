@@ -4,286 +4,244 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>出库管理 - 仓库管理系统</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Bootstrap CSS from Cloudflare -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        /* 自定义样式 */
         body {
             background-color: #f8f9fa;
+            padding-bottom: 60px;
+            padding-top: 80px;
         }
-
-        .navbar-brand {
-            font-weight: bold;
+        
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
         }
-
-        /* 侧边栏样式 */
-        .offcanvas {
-            width: 250px !important;
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,.08);
+            margin-bottom: 24px;
         }
-
-        .offcanvas-body .nav-link {
-            color: #adb5bd;
-            padding: 0.75rem 1rem;
-            border-left: 4px solid transparent;
+        
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0,0,0,.125);
+            padding: 1rem 1.25rem;
+            font-weight: 600;
         }
-
-        .offcanvas-body .nav-link:hover {
-            color: #fff;
-            background-color: #495057;
-            border-left-color: #007bff;
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
         }
-
-        .offcanvas-body .nav-link.active {
-            color: #fff;
-            background-color: #007bff;
-            border-left-color: #007bff;
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
         }
-
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
+        }
+        
+        .table thead th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(106, 17, 203, 0.05);
+        }
+        
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6c757d;
+            z-index: 1000;
+        }
+        
         .main-content {
             padding: 20px;
-            width: 100%;
         }
-
-        /* 在宽屏设备上（桌面端） */
-        @media (min-width: 768px) {
-            /* 主内容区左边距等于侧边栏宽度 */
-            .main-content {
-                margin-left: 250px;
-                width: calc(100% - 250px);
-            }
-            
-            /* 侧边栏固定在左侧，在导航栏下方 */
-            .offcanvas {
-                position: fixed;
-                top: 56px; /* 导航栏的高度 */
-                left: 0;
-                height: calc(100% - 56px); /* 减去导航栏高度 */
-                transform: none !important;
-                visibility: visible !important;
-                box-shadow: 2px 0 5px rgba(0,0,0,.1);
-                z-index: 1030; /* 确保在内容之上 */
-            }
-            
-            /* 隐藏 offcanvas 的头部 */
-            .offcanvas-header {
-                display: none;
-            }
-            
-            /* 隐藏 offcanvas 的背景遮罩 */
-            .offcanvas-backdrop {
-                display: none !important;
-            }
-            
-            /* 调整导航栏，确保它在侧边栏之上 */
-            .navbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1040; /* 确保导航栏在侧边栏之上 */
-            }
-            
-            /* 在导航栏左侧添加边距，避免被侧边栏遮挡 */
-            .navbar .container-fluid {
-                padding-left: 250px !important;
-            }
-        }
-
-        /* 在移动设备上 */
-        @media (max-width: 767.98px) {
-            .offcanvas {
-                z-index: 1045; /* Bootstrap offcanvas 默认 z-index */
-            }
-        }
-
-        .card {
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-            margin-bottom: 20px;
-        }
-
-        .table-responsive {
-            margin-top: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .btn-action {
-            margin-right: 5px;
-        }
-
-        /* 移动端提示样式 */
-        .alert-info {
-            margin-bottom: 20px;
-        }
-
-        /* 防止页面滚动时被固定元素遮挡 */
-        body {
-            padding-top: 56px; /* 导航栏高度 */
-        }
-
-        @media (min-width: 768px) {
-            body {
-                padding-top: 56px; /* 导航栏高度 */
-                padding-left: 250px; /* 侧边栏宽度 */
-            }
-            
-            /* 调整主内容区的顶部边距 */
-            .main-content {
-                padding-top: 0;
-            }
+        
+        .page-header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
-            <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-warehouse me-2"></i>仓库管理系统
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <a class="navbar-brand" href="index.html">仓库管理系统</a>
-            <div class="d-flex align-items-center text-white">
-                <span id="currentUser" class="me-3"></span>
-                <button class="btn btn-outline-light btn-sm" onclick="logout()">退出登录</button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house-door me-1"></i>首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">
+                            <i class="bi bi-box-seam me-1"></i>商品管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="in.html">
+                            <i class="bi bi-arrow-down-circle me-1"></i>入库管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="out.html">
+                            <i class="bi bi-arrow-up-circle me-1"></i>出库管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="stock.html">
+                            <i class="bi bi-clipboard-data me-1"></i>库存查看
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="query.html">
+                            <i class="bi bi-search me-1"></i>库存查询
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center text-white">
+                    <span id="currentUser" class="me-3"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="bi bi-box-arrow-right me-1"></i>退出登录
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- 侧边栏 (使用Offcanvas实现折叠) -->
-            <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title text-white" id="sidebarLabel">菜单</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                </div>
-                <div class="offcanvas-body p-0">
-                    <nav class="nav flex-column">
-                        <a class="nav-link text-white" href="index.html">
-                            <i class="bi bi-house-door me-2"></i>首页
-                        </a>
-                        <a class="nav-link text-white" href="products.html">
-                            <i class="bi bi-box-seam me-2"></i>商品管理
-                        </a>
-                        <a class="nav-link text-white" href="in.html">
-                            <i class="bi bi-arrow-down-circle me-2"></i>入库管理
-                        </a>
-                        <a class="nav-link text-white active" href="out.html">
-                            <i class="bi bi-arrow-up-circle me-2"></i>出库管理
-                        </a>
-                        <a class="nav-link text-white" href="stock.html">
-                            <i class="bi bi-clipboard-data me-2"></i>库存查看
-                        </a>
-                        <a class="nav-link text-white" href="query.html">
-                            <i class="bi bi-search me-2"></i>库存查询
-                        </a>
-                    </nav>
-                </div>
+    <!-- 主内容区 -->
+    <div class="container-fluid main-content">
+        <div class="page-header">
+            <h2 class="mb-1"><i class="bi bi-arrow-up-circle me-2"></i>出库管理</h2>
+            <p class="mb-0">办理商品出库，记录出库方式和去向</p>
+        </div>
+
+        <!-- 出库表单卡片 -->
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-dash-circle me-2"></i>办理出库
             </div>
-
-            <div class="col-md-10 main-content">
-                <!-- 移动端菜单提示 -->
-                <div class="d-block d-md-none alert alert-info alert-dismissible fade show" role="alert">
-                    点击左上角菜单图标展开导航
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-                
-                <h2>出库管理</h2>
-                
-                <!-- 出库表单 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">办理出库</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="outForm">
-                            <div class="row">
-                                <div class="col-md-3 mb-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">选择商品 *</label>
-                                        <select class="form-select" id="productId" required>
-                                            <option value="">请选择商品</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">出库方式 *</label>
-                                        <select class="form-select" id="type" required>
-                                            <option value="sale">销售出库</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mb-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">出库数量 *</label>
-                                        <input type="number" class="form-control" id="quantity" min="1" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mb-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">出库日期 *</label>
-                                        <input type="date" class="form-control" id="recordedDate" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mb-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">去向</label>
-                                        <input type="text" class="form-control" id="destination" placeholder="客户名称">
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-10 mb-3">
-                                    <div class="mb-3">
-                                        <label class="form-label">备注</label>
-                                        <textarea class="form-control" id="remark" rows="2"></textarea>
-                                    </div>
-                                </div>
-                                <div class="col-md-2 mb-3 align-self-end">
-                                    <button type="submit" class="btn btn-primary">提交出库</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
-                <!-- 出库记录 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">出库记录</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>商品名称</th>
-                                        <th>出库方式</th>
-                                        <th>数量</th>
-                                        <th>去向</th>
-                                        <th>出库日期</th>
-                                        <th>备注</th>
-                                        <th>操作时间</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="outRecordsTable">
-                                    <!-- 出库记录将通过JavaScript动态加载 -->
-                                </tbody>
-                            </table>
+            <div class="card-body">
+                <form id="outForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="productId" class="form-label">选择商品 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="productId" required>
+                                <option value="">请选择商品</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="type" class="form-label">出库方式 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="type" required>
+                                <option value="sale">销售出库</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="quantity" class="form-label">出库数量 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="quantity" min="1" required placeholder="请输入出库数量">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="recordedDate" class="form-label">出库日期 <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="recordedDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="destination" class="form-label">去向</label>
+                            <input type="text" class="form-control" id="destination" placeholder="客户名称">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="remark" class="form-label">备注</label>
+                            <textarea class="form-control" id="remark" rows="2" placeholder="可选填写"></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle me-2"></i>提交出库
+                            </button>
                         </div>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 出库记录卡片 -->
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-list-check me-2"></i>出库记录
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>商品名称</th>
+                                <th>出库方式</th>
+                                <th>数量</th>
+                                <th>去向</th>
+                                <th>出库日期</th>
+                                <th>备注</th>
+                                <th>操作时间</th>
+                            </tr>
+                        </thead>
+                        <tbody id="outRecordsTable">
+                            <!-- 动态加载 -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle (包含Popper) -->
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            &copy; 2026 仓库管理系统 | 京ICP备12345678号
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // 检查登录状态
         async function checkLogin() {
             try {
                 const response = await fetch('/api/current-user');
@@ -296,7 +254,6 @@
                     loadProducts();
                     loadOutRecords();
                     
-                    // 设置默认日期为今天
                     const today = new Date();
                     const year = today.getFullYear();
                     const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -309,7 +266,6 @@
             }
         }
 
-        // 加载商品列表
         async function loadProducts() {
             try {
                 const response = await fetch('/api/products');
@@ -329,7 +285,6 @@
             }
         }
 
-        // 加载出库记录
         async function loadOutRecords() {
             try {
                 const response = await fetch('/api/out-records');
@@ -340,7 +295,6 @@
             }
         }
 
-        // 渲染出库记录
         function renderOutRecords(records) {
             const tbody = document.getElementById('outRecordsTable');
             tbody.innerHTML = '';
@@ -353,18 +307,17 @@
                 row.innerHTML = `
                     <td>${record.id}</td>
                     <td>${record.product_name}</td>
-                    <td>${typeText}</td>
-                    <td>${record.quantity}</td>
+                    <td><span class="badge bg-warning">${typeText}</span></td>
+                    <td><span class="badge bg-danger">${record.quantity}</span></td>
                     <td>${record.destination || '-'}</td>
                     <td>${record.recorded_date}</td>
                     <td>${record.remark || '-'}</td>
-                    <td>${createdAt}</td>
+                    <td><small class="text-muted">${createdAt}</small></td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
-        // 提交出库
         document.getElementById('outForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -391,15 +344,14 @@
                 if (data.success) {
                     alert('出库成功');
                     document.getElementById('outForm').reset();
-                    // 重置日期为今天
                     const today = new Date();
                     const year = today.getFullYear();
                     const month = String(today.getMonth() + 1).padStart(2, '0');
                     const day = String(today.getDate()).padStart(2, '0');
                     document.getElementById('recordedDate').value = `${year}-${month}-${day}`;
                     
-                    loadProducts(); // 重新加载商品列表更新库存
-                    loadOutRecords(); // 重新加载出库记录
+                    loadProducts();
+                    loadOutRecords();
                 } else {
                     alert('出库失败: ' + data.message);
                 }
@@ -409,7 +361,6 @@
             }
         });
 
-        // 退出登录
         async function logout() {
             try {
                 await fetch('/api/logout');
@@ -419,7 +370,6 @@
             }
         }
 
-        // 页面加载时检查登录状态
         document.addEventListener('DOMContentLoaded', checkLogin);
     </script>
 </body>

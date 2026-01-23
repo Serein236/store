@@ -4,317 +4,293 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>库存查询 - 仓库管理系统</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Bootstrap CSS from Cloudflare -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        /* 自定义样式 */
         body {
             background-color: #f8f9fa;
+            padding-bottom: 60px;
+            padding-top: 80px;
         }
-
-        .navbar-brand {
-            font-weight: bold;
+        
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
         }
-
-        /* 侧边栏样式 */
-        .offcanvas {
-            width: 250px !important;
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,.08);
+            margin-bottom: 24px;
         }
-
-        .offcanvas-body .nav-link {
-            color: #adb5bd;
-            padding: 0.75rem 1rem;
-            border-left: 4px solid transparent;
+        
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0,0,0,.125);
+            padding: 1rem 1.25rem;
+            font-weight: 600;
         }
-
-        .offcanvas-body .nav-link:hover {
-            color: #fff;
-            background-color: #495057;
-            border-left-color: #007bff;
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
         }
-
-        .offcanvas-body .nav-link.active {
-            color: #fff;
-            background-color: #007bff;
-            border-left-color: #007bff;
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #6a11cb;
+            box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
         }
-
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
+        }
+        
+        .table thead th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(106, 17, 203, 0.05);
+        }
+        
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            padding: 12px 0;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #6c757d;
+            z-index: 1000;
+        }
+        
         .main-content {
             padding: 20px;
-            width: 100%;
         }
-
-        /* 在宽屏设备上（桌面端） */
-        @media (min-width: 768px) {
-            /* 主内容区左边距等于侧边栏宽度 */
-            .main-content {
-                margin-left: 250px;
-                width: calc(100% - 250px);
-            }
-            
-            /* 侧边栏固定在左侧，在导航栏下方 */
-            .offcanvas {
-                position: fixed;
-                top: 56px; /* 导航栏的高度 */
-                left: 0;
-                height: calc(100% - 56px); /* 减去导航栏高度 */
-                transform: none !important;
-                visibility: visible !important;
-                box-shadow: 2px 0 5px rgba(0,0,0,.1);
-                z-index: 1030; /* 确保在内容之上 */
-            }
-            
-            /* 隐藏 offcanvas 的头部 */
-            .offcanvas-header {
-                display: none;
-            }
-            
-            /* 隐藏 offcanvas 的背景遮罩 */
-            .offcanvas-backdrop {
-                display: none !important;
-            }
-            
-            /* 调整导航栏，确保它在侧边栏之上 */
-            .navbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                z-index: 1040; /* 确保导航栏在侧边栏之上 */
-            }
-            
-            /* 在导航栏左侧添加边距，避免被侧边栏遮挡 */
-            .navbar .container-fluid {
-                padding-left: 250px !important;
-            }
+        
+        .page-header {
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,.1);
         }
-
-        /* 在移动设备上 */
-        @media (max-width: 767.98px) {
-            .offcanvas {
-                z-index: 1045; /* Bootstrap offcanvas 默认 z-index */
-            }
+        
+        .query-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
-
-        .card {
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
-            margin-bottom: 20px;
-        }
-
-        .table-responsive {
-            margin-top: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 1rem;
-        }
-
-        .btn-action {
-            margin-right: 5px;
-        }
-
-        /* 移动端提示样式 */
-        .alert-info {
-            margin-bottom: 20px;
-        }
-
-        /* 防止页面滚动时被固定元素遮挡 */
-        body {
-            padding-top: 56px; /* 导航栏高度 */
-        }
-
-        @media (min-width: 768px) {
-            body {
-                padding-top: 56px; /* 导航栏高度 */
-                padding-left: 250px; /* 侧边栏宽度 */
-            }
-            
-            /* 调整主内容区的顶部边距 */
-            .main-content {
-                padding-top: 0;
-            }
+        
+        .info-card {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container-fluid">
-            <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-warehouse me-2"></i>仓库管理系统
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            <a class="navbar-brand" href="index.html">仓库管理系统</a>
-            <div class="d-flex align-items-center text-white">
-                <span id="currentUser" class="me-3"></span>
-                <button class="btn btn-outline-light btn-sm" onclick="logout()">退出登录</button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house-door me-1"></i>首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">
+                            <i class="bi bi-box-seam me-1"></i>商品管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="in.html">
+                            <i class="bi bi-arrow-down-circle me-1"></i>入库管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="out.html">
+                            <i class="bi bi-arrow-up-circle me-1"></i>出库管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="stock.html">
+                            <i class="bi bi-clipboard-data me-1"></i>库存查看
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="query.html">
+                            <i class="bi bi-search me-1"></i>库存查询
+                        </a>
+                    </li>
+                </ul>
+                
+                <div class="d-flex align-items-center text-white">
+                    <span id="currentUser" class="me-3"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="bi bi-box-arrow-right me-1"></i>退出登录
+                    </button>
+                </div>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid">
-        <div class="row">
-            <!-- 侧边栏 (使用Offcanvas实现折叠) -->
-            <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
-                <div class="offcanvas-header">
-                    <h5 class="offcanvas-title text-white" id="sidebarLabel">菜单</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <!-- 主内容区 -->
+    <div class="container-fluid main-content">
+        <div class="page-header">
+            <h2 class="mb-1"><i class="bi bi-search me-2"></i>库存查询</h2>
+            <p class="mb-0">查询商品库存详情，包括入库出库记录和月度统计</p>
+        </div>
+
+        <!-- 查询条件卡片 -->
+        <div class="card query-card">
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-filter me-2"></i>查询条件
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="productId" class="form-label">选择商品 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="productId" required>
+                            <option value="">请选择商品</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="queryMonth" class="form-label">查询月份</label>
+                        <input type="month" class="form-control" id="queryMonth">
+                    </div>
+                    <div class="col-md-2 align-self-end">
+                        <button class="btn btn-primary w-100" onclick="queryStock()">
+                            <i class="bi bi-search me-2"></i>查询
+                        </button>
+                    </div>
                 </div>
-                <div class="offcanvas-body p-0">
-                    <nav class="nav flex-column">
-                        <a class="nav-link text-white" href="index.html">
-                            <i class="bi bi-house-door me-2"></i>首页
-                        </a>
-                        <a class="nav-link text-white" href="products.html">
-                            <i class="bi bi-box-seam me-2"></i>商品管理
-                        </a>
-                        <a class="nav-link text-white" href="in.html">
-                            <i class="bi bi-arrow-down-circle me-2"></i>入库管理
-                        </a>
-                        <a class="nav-link text-white" href="out.html">
-                            <i class="bi bi-arrow-up-circle me-2"></i>出库管理
-                        </a>
-                        <a class="nav-link text-white" href="stock.html">
-                            <i class="bi bi-clipboard-data me-2"></i>库存查看
-                        </a>
-                        <a class="nav-link text-white active" href="query.html">
-                            <i class="bi bi-search me-2"></i>库存查询
-                        </a>
-                    </nav>
+            </div>
+        </div>
+
+        <!-- 查询结果 -->
+        <div id="queryResult" style="display: none;">
+            <!-- 商品基本信息卡片 -->
+            <div class="card info-card mt-3">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-info-circle me-2"></i>商品信息
+                </div>
+                <div class="card-body">
+                    <div class="row" id="productInfo">
+                        <!-- 动态加载 -->
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-10 main-content">
-                <!-- 移动端菜单提示 -->
-                <div class="d-block d-md-none alert alert-info alert-dismissible fade show" role="alert">
-                    点击左上角菜单图标展开导航
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <!-- 按月统计卡片 -->
+            <div class="card mt-3">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-calendar-check me-2"></i>按月统计
                 </div>
-                
-                <h2>库存查询</h2>
-                
-                <!-- 查询条件 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">查询条件</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <div class="mb-3">
-                                    <label class="form-label">选择商品 *</label>
-                                    <select class="form-select" id="productId" required>
-                                        <option value="">请选择商品</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <div class="mb-3">
-                                    <label class="form-label">查询月份</label>
-                                    <input type="month" class="form-control" id="queryMonth">
-                                </div>
-                            </div>
-                            <div class="col-md-2 mb-3 align-self-end">
-                                <button class="btn btn-primary" onclick="queryStock()">查询</button>
-                            </div>
-                        </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>月份</th>
+                                    <th>入库数量</th>
+                                    <th>出库数量</th>
+                                    <th>净变化</th>
+                                </tr>
+                            </thead>
+                            <tbody id="monthlyStatsTable">
+                                <!-- 动态加载 -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+            </div>
 
-                <!-- 查询结果 -->
-                <div id="queryResult" style="display: none;">
-                    <!-- 商品基本信息 -->
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <h5 class="mb-0">商品信息</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row" id="productInfo">
-                                <!-- 商品信息将通过JavaScript动态加载 -->
-                            </div>
-                        </div>
+            <!-- 入库明细卡片 -->
+            <div class="card mt-3">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-arrow-down-circle me-2"></i>入库明细
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>入库日期</th>
+                                    <th>入库方式</th>
+                                    <th>数量</th>
+                                    <th>来源</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inDetailsTable">
+                                <!-- 动态加载 -->
+                            </tbody>
+                        </table>
                     </div>
+                </div>
+            </div>
 
-                    <!-- 按月统计 -->
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <h5 class="mb-0">按月统计</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>月份</th>
-                                            <th>入库数量</th>
-                                            <th>出库数量</th>
-                                            <th>净变化</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="monthlyStatsTable">
-                                        <!-- 按月统计数据将通过JavaScript动态加载 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 入库明细 -->
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <h5 class="mb-0">入库明细</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>入库日期</th>
-                                            <th>入库方式</th>
-                                            <th>数量</th>
-                                            <th>来源</th>
-                                            <th>备注</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="inDetailsTable">
-                                        <!-- 入库明细将通过JavaScript动态加载 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 出库明细 -->
-                    <div class="card mt-3">
-                        <div class="card-header">
-                            <h5 class="mb-0">出库明细</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>出库日期</th>
-                                            <th>出库方式</th>
-                                            <th>数量</th>
-                                            <th>去向</th>
-                                            <th>备注</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="outDetailsTable">
-                                        <!-- 出库明细将通过JavaScript动态加载 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+            <!-- 出库明细卡片 -->
+            <div class="card mt-3">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-arrow-up-circle me-2"></i>出库明细
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>出库日期</th>
+                                    <th>出库方式</th>
+                                    <th>数量</th>
+                                    <th>去向</th>
+                                    <th>备注</th>
+                                </tr>
+                            </thead>
+                            <tbody id="outDetailsTable">
+                                <!-- 动态加载 -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap JS Bundle (包含Popper) -->
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            &copy; 2026 仓库管理系统 | 京ICP备12345678号
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    
     <script>
-        // 检查登录状态
         async function checkLogin() {
             try {
                 const response = await fetch('/api/current-user');
@@ -332,7 +308,6 @@
             }
         }
 
-        // 加载商品列表
         async function loadProducts() {
             try {
                 const response = await fetch('/api/products');
@@ -352,7 +327,6 @@
             }
         }
 
-        // 查询库存
         async function queryStock() {
             const productId = document.getElementById('productId').value;
             const month = document.getElementById('queryMonth').value;
@@ -368,7 +342,7 @@
                     url += `?month=${month}`;
                 }
                 
-                console.log('请求URL:', url); // 调试信息
+                console.log('请求URL:', url);
                 
                 const response = await fetch(url);
                 if (!response.ok) {
@@ -376,7 +350,7 @@
                 }
                 
                 const data = await response.json();
-                console.log('查询结果:', data); // 调试信息
+                console.log('查询结果:', data);
                 
                 if (data.success) {
                     renderQueryResult(data);
@@ -390,11 +364,9 @@
             }
         }
 
-        // 渲染查询结果
         function renderQueryResult(data) {
             const product = data.product;
             
-            // 渲染商品信息
             document.getElementById('productInfo').innerHTML = `
                 <div class="col-md-3">
                     <p><strong>商品名称:</strong> ${product.name}</p>
@@ -412,11 +384,10 @@
                     <p><strong>零售价:</strong> ${product.retail_price ? '¥' + product.retail_price.toFixed(2) : '-'}</p>
                 </div>
                 <div class="col-md-2">
-                    <p><strong>当前库存:</strong> <span class="${product.stock < 10 ? 'text-danger fw-bold' : ''}">${product.stock}</span></p>
+                    <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock}</span></p>
                 </div>
             `;
             
-            // 渲染按月统计
             const monthlyStatsTable = document.getElementById('monthlyStatsTable');
             monthlyStatsTable.innerHTML = '';
             
@@ -426,9 +397,9 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${stat.month}</td>
-                        <td>${stat.in_quantity}</td>
-                        <td>${stat.out_quantity}</td>
-                        <td class="${netChange > 0 ? 'text-success' : netChange < 0 ? 'text-danger' : ''}">
+                        <td><span class="badge bg-info">${stat.in_quantity}</span></td>
+                        <td><span class="badge bg-warning">${stat.out_quantity}</span></td>
+                        <td class="fw-bold ${netChange > 0 ? 'text-success' : netChange < 0 ? 'text-danger' : ''}">
                             ${netChange > 0 ? '+' : ''}${netChange}
                         </td>
                     `;
@@ -437,12 +408,13 @@
             } else {
                 monthlyStatsTable.innerHTML = `
                     <tr>
-                        <td colspan="4" class="text-center text-muted">暂无统计数据</td>
+                        <td colspan="4" class="text-center text-muted">
+                            <i class="bi bi-calendar-x me-2"></i>暂无统计数据
+                        </td>
                     </tr>
                 `;
             }
             
-            // 渲染入库明细
             const inDetailsTable = document.getElementById('inDetailsTable');
             inDetailsTable.innerHTML = '';
             
@@ -452,8 +424,8 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${record.recorded_date}</td>
-                        <td>${typeText}</td>
-                        <td>${record.quantity}</td>
+                        <td><span class="badge ${record.type === 'purchase' ? 'bg-primary' : 'bg-info'}">${typeText}</span></td>
+                        <td><span class="badge bg-success">${record.quantity}</span></td>
                         <td>${record.source || '-'}</td>
                         <td>${record.remark || '-'}</td>
                     `;
@@ -462,12 +434,13 @@
             } else {
                 inDetailsTable.innerHTML = `
                     <tr>
-                        <td colspan="5" class="text-center text-muted">暂无入库记录</td>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="bi bi-arrow-down-circle me-2"></i>暂无入库记录
+                        </td>
                     </tr>
                 `;
             }
             
-            // 渲染出库明细
             const outDetailsTable = document.getElementById('outDetailsTable');
             outDetailsTable.innerHTML = '';
             
@@ -477,8 +450,8 @@
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${record.recorded_date}</td>
-                        <td>${typeText}</td>
-                        <td>${record.quantity}</td>
+                        <td><span class="badge bg-warning">${typeText}</span></td>
+                        <td><span class="badge bg-danger">${record.quantity}</span></td>
                         <td>${record.destination || '-'}</td>
                         <td>${record.remark || '-'}</td>
                     `;
@@ -487,13 +460,14 @@
             } else {
                 outDetailsTable.innerHTML = `
                     <tr>
-                        <td colspan="5" class="text-center text-muted">暂无出库记录</td>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="bi bi-arrow-up-circle me-2"></i>暂无出库记录
+                        </td>
                     </tr>
                 `;
             }
         }
 
-        // 退出登录
         async function logout() {
             try {
                 await fetch('/api/logout');
@@ -503,7 +477,6 @@
             }
         }
 
-        // 页面加载时检查登录状态
         document.addEventListener('DOMContentLoaded', checkLogin);
     </script>
 </body>

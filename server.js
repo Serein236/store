@@ -13,7 +13,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
 app.use(session({
-    secret: 'warehouse-secret-key',
+    secret: 'store-secret-key',
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24小时
@@ -24,7 +24,7 @@ const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: 'root', // 请修改为你的数据库密码
-    database: 'warehouse',
+    database: 'store',
     charset: 'utf8mb4'
 });
 

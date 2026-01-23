@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,57 +15,58 @@
             padding-bottom: 60px;
             padding-top: 80px;
         }
-        
+
         .navbar {
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
         }
-        
+
         .card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,.08);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
             margin-bottom: 24px;
         }
-        
+
         .card-header {
             background-color: #f8f9fa;
-            border-bottom: 1px solid rgba(0,0,0,.125);
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
             padding: 1rem 1.25rem;
             font-weight: 600;
         }
-        
+
         .form-label {
             font-weight: 500;
             color: #495057;
         }
-        
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus,
+        .form-select:focus {
             border-color: #6a11cb;
             box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             border: none;
             padding: 0.75rem 1.5rem;
             font-weight: 600;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
         }
-        
+
         .table thead th {
             background-color: #f8f9fa;
             font-weight: 600;
             border-bottom: 2px solid #dee2e6;
         }
-        
+
         .table-hover tbody tr:hover {
             background-color: rgba(106, 17, 203, 0.05);
         }
-        
+
         footer {
             position: fixed;
             bottom: 0;
@@ -78,31 +80,32 @@
             color: #6c757d;
             z-index: 1000;
         }
-        
+
         .main-content {
             padding: 20px;
         }
-        
+
         .page-header {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             padding: 1.5rem;
             border-radius: 10px;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
         }
-        
+
         .btn-action {
             margin-right: 5px;
         }
-        
+
         .modal-content {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 10px 30px rgba(0,0,0,.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
         }
     </style>
 </head>
+
 <body>
     <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
@@ -110,11 +113,11 @@
             <a class="navbar-brand fw-bold" href="index.html">
                 <i class="bi bi-warehouse me-2"></i>仓库管理系统
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -148,7 +151,7 @@
                         </a>
                     </li>
                 </ul>
-                
+
                 <div class="d-flex align-items-center text-white">
                     <span id="currentUser" class="me-3"></span>
                     <button class="btn btn-outline-light btn-sm" onclick="logout()">
@@ -279,13 +282,14 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank" style="text-decoration: none;">鄂ICP备2025167566号</a>
+            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"
+                class="text-decoration-none text-reset">鄂ICP备2025167566号</a>
         </div>
     </footer>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         let products = [];
         let editModal = null;
@@ -294,7 +298,7 @@
             try {
                 const response = await fetch('/api/current-user');
                 const data = await response.json();
-                
+
                 if (!data.loggedIn) {
                     window.location.href = 'login.html';
                 } else {
@@ -321,7 +325,7 @@
         function renderProducts() {
             const tbody = document.getElementById('productsTable');
             tbody.innerHTML = '';
-            
+
             products.forEach(product => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -345,9 +349,9 @@
             });
         }
 
-        document.getElementById('addProductForm').addEventListener('submit', async function(e) {
+        document.getElementById('addProductForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const productData = {
                 name: document.getElementById('productName').value,
                 spec: document.getElementById('productSpec').value,
@@ -355,7 +359,7 @@
                 packing_spec: document.getElementById('packingSpec').value,
                 retail_price: document.getElementById('retailPrice').value || null
             };
-            
+
             try {
                 const response = await fetch('/api/products', {
                     method: 'POST',
@@ -364,9 +368,9 @@
                     },
                     body: JSON.stringify(productData)
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     alert('商品添加成功');
                     document.getElementById('addProductForm').reset();
@@ -383,14 +387,14 @@
         function editProduct(id) {
             const product = products.find(p => p.id === id);
             if (!product) return;
-            
+
             document.getElementById('editProductId').value = product.id;
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductSpec').value = product.spec || '';
             document.getElementById('editPackingSpec').value = product.packing_spec || '';
             document.getElementById('editUnit').value = product.unit || '';
             document.getElementById('editRetailPrice').value = product.retail_price || '';
-            
+
             editModal.show();
         }
 
@@ -403,7 +407,7 @@
                 unit: document.getElementById('editUnit').value,
                 retail_price: document.getElementById('editRetailPrice').value || null
             };
-            
+
             try {
                 const response = await fetch(`/api/products/${id}`, {
                     method: 'PUT',
@@ -412,9 +416,9 @@
                     },
                     body: JSON.stringify(productData)
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     editModal.hide();
                     alert('商品更新成功');
@@ -430,14 +434,14 @@
 
         async function deleteProduct(id) {
             if (!confirm('确定要删除这个商品吗？')) return;
-            
+
             try {
                 const response = await fetch(`/api/products/${id}`, {
                     method: 'DELETE'
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     alert('商品删除成功');
                     loadProducts();
@@ -462,4 +466,5 @@
         document.addEventListener('DOMContentLoaded', checkLogin);
     </script>
 </body>
+
 </html>

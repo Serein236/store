@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,57 +15,58 @@
             padding-bottom: 60px;
             padding-top: 80px;
         }
-        
+
         .navbar {
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
         }
-        
+
         .card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,.08);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
             margin-bottom: 24px;
         }
-        
+
         .card-header {
             background-color: #f8f9fa;
-            border-bottom: 1px solid rgba(0,0,0,.125);
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
             padding: 1rem 1.25rem;
             font-weight: 600;
         }
-        
+
         .form-label {
             font-weight: 500;
             color: #495057;
         }
-        
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus,
+        .form-select:focus {
             border-color: #6a11cb;
             box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             border: none;
             padding: 0.75rem 1.5rem;
             font-weight: 600;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
         }
-        
+
         .table thead th {
             background-color: #f8f9fa;
             font-weight: 600;
             border-bottom: 2px solid #dee2e6;
         }
-        
+
         .table-hover tbody tr:hover {
             background-color: rgba(106, 17, 203, 0.05);
         }
-        
+
         footer {
             position: fixed;
             bottom: 0;
@@ -78,21 +80,22 @@
             color: #6c757d;
             z-index: 1000;
         }
-        
+
         .main-content {
             padding: 20px;
         }
-        
+
         .page-header {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             padding: 1.5rem;
             border-radius: 10px;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
         }
     </style>
 </head>
+
 <body>
     <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
@@ -100,11 +103,11 @@
             <a class="navbar-brand fw-bold" href="index.html">
                 <i class="bi bi-warehouse me-2"></i>仓库管理系统
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -138,7 +141,7 @@
                         </a>
                     </li>
                 </ul>
-                
+
                 <div class="d-flex align-items-center text-white">
                     <span id="currentUser" class="me-3"></span>
                     <button class="btn btn-outline-light btn-sm" onclick="logout()">
@@ -178,7 +181,8 @@
                         </div>
                         <div class="col-md-6">
                             <label for="quantity" class="form-label">出库数量 <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="quantity" min="1" required placeholder="请输入出库数量">
+                            <input type="number" class="form-control" id="quantity" min="1" required
+                                placeholder="请输入出库数量">
                         </div>
                         <div class="col-md-6">
                             <label for="recordedDate" class="form-label">出库日期 <span class="text-danger">*</span></label>
@@ -234,26 +238,27 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank" style="text-decoration: none;">鄂ICP备2025167566号</a>
+            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"
+                class="text-decoration-none text-reset">鄂ICP备2025167566号</a>
         </div>
     </footer>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         async function checkLogin() {
             try {
                 const response = await fetch('/api/current-user');
                 const data = await response.json();
-                
+
                 if (!data.loggedIn) {
                     window.location.href = 'login.html';
                 } else {
                     document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
                     loadProducts();
                     loadOutRecords();
-                    
+
                     const today = new Date();
                     const year = today.getFullYear();
                     const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -270,10 +275,10 @@
             try {
                 const response = await fetch('/api/products');
                 const products = await response.json();
-                
+
                 const select = document.getElementById('productId');
                 select.innerHTML = '<option value="">请选择商品</option>';
-                
+
                 products.forEach(product => {
                     const option = document.createElement('option');
                     option.value = product.id;
@@ -298,12 +303,12 @@
         function renderOutRecords(records) {
             const tbody = document.getElementById('outRecordsTable');
             tbody.innerHTML = '';
-            
+
             records.forEach(record => {
                 const row = document.createElement('tr');
                 const typeText = record.type === 'sale' ? '销售出库' : '其他';
                 const createdAt = new Date(record.created_at).toLocaleString('zh-CN');
-                
+
                 row.innerHTML = `
                     <td>${record.id}</td>
                     <td>${record.product_name}</td>
@@ -318,9 +323,9 @@
             });
         }
 
-        document.getElementById('outForm').addEventListener('submit', async function(e) {
+        document.getElementById('outForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const outData = {
                 product_id: document.getElementById('productId').value,
                 type: document.getElementById('type').value,
@@ -329,7 +334,7 @@
                 destination: document.getElementById('destination').value,
                 recorded_date: document.getElementById('recordedDate').value
             };
-            
+
             try {
                 const response = await fetch('/api/out', {
                     method: 'POST',
@@ -338,9 +343,9 @@
                     },
                     body: JSON.stringify(outData)
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     alert('出库成功');
                     document.getElementById('outForm').reset();
@@ -349,7 +354,7 @@
                     const month = String(today.getMonth() + 1).padStart(2, '0');
                     const day = String(today.getDate()).padStart(2, '0');
                     document.getElementById('recordedDate').value = `${year}-${month}-${day}`;
-                    
+
                     loadProducts();
                     loadOutRecords();
                 } else {
@@ -373,4 +378,5 @@
         document.addEventListener('DOMContentLoaded', checkLogin);
     </script>
 </body>
+
 </html>

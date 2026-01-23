@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,57 +15,58 @@
             padding-bottom: 60px;
             padding-top: 80px;
         }
-        
+
         .navbar {
-            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
         }
-        
+
         .card {
             border: none;
             border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,.08);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
             margin-bottom: 24px;
         }
-        
+
         .card-header {
             background-color: #f8f9fa;
-            border-bottom: 1px solid rgba(0,0,0,.125);
+            border-bottom: 1px solid rgba(0, 0, 0, .125);
             padding: 1rem 1.25rem;
             font-weight: 600;
         }
-        
+
         .form-label {
             font-weight: 500;
             color: #495057;
         }
-        
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus,
+        .form-select:focus {
             border-color: #6a11cb;
             box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
         }
-        
+
         .btn-primary {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             border: none;
             padding: 0.75rem 1.5rem;
             font-weight: 600;
         }
-        
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
         }
-        
+
         .table thead th {
             background-color: #f8f9fa;
             font-weight: 600;
             border-bottom: 2px solid #dee2e6;
         }
-        
+
         .table-hover tbody tr:hover {
             background-color: rgba(106, 17, 203, 0.05);
         }
-        
+
         footer {
             position: fixed;
             bottom: 0;
@@ -78,29 +80,30 @@
             color: #6c757d;
             z-index: 1000;
         }
-        
+
         .main-content {
             padding: 20px;
         }
-        
+
         .page-header {
             background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
             color: white;
             padding: 1.5rem;
             border-radius: 10px;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,.1);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
         }
-        
+
         .query-card {
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
-        
+
         .info-card {
             background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
         }
     </style>
 </head>
+
 <body>
     <!-- 导航栏 -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
@@ -108,11 +111,11 @@
             <a class="navbar-brand fw-bold" href="index.html">
                 <i class="bi bi-warehouse me-2"></i>仓库管理系统
             </a>
-            
+
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
@@ -146,7 +149,7 @@
                         </a>
                     </li>
                 </ul>
-                
+
                 <div class="d-flex align-items-center text-white">
                     <span id="currentUser" class="me-3"></span>
                     <button class="btn btn-outline-light btn-sm" onclick="logout()">
@@ -283,19 +286,20 @@
     <!-- Footer -->
     <footer>
         <div class="container">
-            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank" style="text-decoration: none;">鄂ICP备2025167566号</a>
+            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"
+                class="text-decoration-none text-reset">鄂ICP备2025167566号</a>
         </div>
     </footer>
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
+
     <script>
         async function checkLogin() {
             try {
                 const response = await fetch('/api/current-user');
                 const data = await response.json();
-                
+
                 if (!data.loggedIn) {
                     window.location.href = 'login.html';
                 } else {
@@ -312,10 +316,10 @@
             try {
                 const response = await fetch('/api/products');
                 const products = await response.json();
-                
+
                 const select = document.getElementById('productId');
                 select.innerHTML = '<option value="">请选择商品</option>';
-                
+
                 products.forEach(product => {
                     const option = document.createElement('option');
                     option.value = product.id;
@@ -330,28 +334,28 @@
         async function queryStock() {
             const productId = document.getElementById('productId').value;
             const month = document.getElementById('queryMonth').value;
-            
+
             if (!productId) {
                 alert('请选择商品');
                 return;
             }
-            
+
             try {
                 let url = `/api/query/${productId}`;
                 if (month) {
                     url += `?month=${month}`;
                 }
-                
+
                 console.log('请求URL:', url);
-                
+
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`HTTP错误: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
                 console.log('查询结果:', data);
-                
+
                 if (data.success) {
                     renderQueryResult(data);
                     document.getElementById('queryResult').style.display = 'block';
@@ -366,7 +370,7 @@
 
         function renderQueryResult(data) {
             const product = data.product;
-            
+
             document.getElementById('productInfo').innerHTML = `
                 <div class="col-md-3">
                     <p><strong>商品名称:</strong> ${product.name}</p>
@@ -387,10 +391,10 @@
                     <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock}</span></p>
                 </div>
             `;
-            
+
             const monthlyStatsTable = document.getElementById('monthlyStatsTable');
             monthlyStatsTable.innerHTML = '';
-            
+
             if (data.monthlyStats && data.monthlyStats.length > 0) {
                 data.monthlyStats.forEach(stat => {
                     const netChange = stat.in_quantity - stat.out_quantity;
@@ -414,10 +418,10 @@
                     </tr>
                 `;
             }
-            
+
             const inDetailsTable = document.getElementById('inDetailsTable');
             inDetailsTable.innerHTML = '';
-            
+
             if (data.inRecords && data.inRecords.length > 0) {
                 data.inRecords.forEach(record => {
                     const typeText = record.type === 'purchase' ? '采购入库' : '退货入库';
@@ -440,10 +444,10 @@
                     </tr>
                 `;
             }
-            
+
             const outDetailsTable = document.getElementById('outDetailsTable');
             outDetailsTable.innerHTML = '';
-            
+
             if (data.outRecords && data.outRecords.length > 0) {
                 data.outRecords.forEach(record => {
                     const typeText = record.type === 'sale' ? '销售出库' : '其他';
@@ -480,4 +484,5 @@
         document.addEventListener('DOMContentLoaded', checkLogin);
     </script>
 </body>
+
 </html>

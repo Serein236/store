@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>库存查看 - 仓库管理系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        /* 自定义样式 */
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        /* 侧边栏样式 */
+        .offcanvas {
+            width: 250px !important;
+        }
+
+        .offcanvas-body .nav-link {
+            color: #adb5bd;
+            padding: 0.75rem 1rem;
+            border-left: 4px solid transparent;
+        }
+
+        .offcanvas-body .nav-link:hover {
+            color: #fff;
+            background-color: #495057;
+            border-left-color: #007bff;
+        }
+
+        .offcanvas-body .nav-link.active {
+            color: #fff;
+            background-color: #007bff;
+            border-left-color: #007bff;
+        }
+
+        .main-content {
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* 在宽屏设备上（桌面端） */
+        @media (min-width: 768px) {
+            /* 主内容区左边距等于侧边栏宽度 */
+            .main-content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
+            
+            /* 侧边栏固定在左侧，在导航栏下方 */
+            .offcanvas {
+                position: fixed;
+                top: 56px; /* 导航栏的高度 */
+                left: 0;
+                height: calc(100% - 56px); /* 减去导航栏高度 */
+                transform: none !important;
+                visibility: visible !important;
+                box-shadow: 2px 0 5px rgba(0,0,0,.1);
+                z-index: 1030; /* 确保在内容之上 */
+            }
+            
+            /* 隐藏 offcanvas 的头部 */
+            .offcanvas-header {
+                display: none;
+            }
+            
+            /* 隐藏 offcanvas 的背景遮罩 */
+            .offcanvas-backdrop {
+                display: none !important;
+            }
+            
+            /* 调整导航栏，确保它在侧边栏之上 */
+            .navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1040; /* 确保导航栏在侧边栏之上 */
+            }
+            
+            /* 在导航栏左侧添加边距，避免被侧边栏遮挡 */
+            .navbar .container-fluid {
+                padding-left: 250px !important;
+            }
+        }
+
+        /* 在移动设备上 */
+        @media (max-width: 767.98px) {
+            .offcanvas {
+                z-index: 1045; /* Bootstrap offcanvas 默认 z-index */
+            }
+        }
+
+        .card {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            margin-bottom: 20px;
+        }
+
+        .table-responsive {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .btn-action {
+            margin-right: 5px;
+        }
+
+        /* 移动端提示样式 */
+        .alert-info {
+            margin-bottom: 20px;
+        }
+
+        /* 防止页面滚动时被固定元素遮挡 */
+        body {
+            padding-top: 56px; /* 导航栏高度 */
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding-top: 56px; /* 导航栏高度 */
+                padding-left: 250px; /* 侧边栏宽度 */
+            }
+            
+            /* 调整主内容区的顶部边距 */
+            .main-content {
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">仓库管理系统</a>
+            <div class="d-flex align-items-center text-white">
+                <span id="currentUser" class="me-3"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 侧边栏 (使用Offcanvas实现折叠) -->
+            <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+                <div class="offcanvas-header">
+                    <h5 class="offcanvas-title text-white" id="sidebarLabel">菜单</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                </div>
+                <div class="offcanvas-body p-0">
+                    <nav class="nav flex-column">
+                        <a class="nav-link text-white" href="index.html">
+                            <i class="bi bi-house-door me-2"></i>首页
+                        </a>
+                        <a class="nav-link text-white" href="products.html">
+                            <i class="bi bi-box-seam me-2"></i>商品管理
+                        </a>
+                        <a class="nav-link text-white" href="in.html">
+                            <i class="bi bi-arrow-down-circle me-2"></i>入库管理
+                        </a>
+                        <a class="nav-link text-white" href="out.html">
+                            <i class="bi bi-arrow-up-circle me-2"></i>出库管理
+                        </a>
+                        <a class="nav-link text-white active" href="stock.html">
+                            <i class="bi bi-clipboard-data me-2"></i>库存查看
+                        </a>
+                        <a class="nav-link text-white" href="query.html">
+                            <i class="bi bi-search me-2"></i>库存查询
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="col-md-10 main-content">
+                <!-- 移动端菜单提示 -->
+                <div class="d-block d-md-none alert alert-info alert-dismissible fade show" role="alert">
+                    点击左上角菜单图标展开导航
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                
+                <h2>库存查看</h2>
+                
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">库存列表</h5>
+                        <div>
+                            <button class="btn btn-primary btn-sm me-2" onclick="refreshStock()">刷新</button>
+                            <button class="btn btn-success btn-sm" onclick="exportToExcel()">导出Excel</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>商品ID</th>
+                                        <th>商品名称</th>
+                                        <th>规格</th>
+                                        <th>单位</th>
+                                        <th>总入库</th>
+                                        <th>总出库</th>
+                                        <th>现有库存</th>
+                                        <th>零售价</th>
+                                        <th>库存价值</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockTable">
+                                    <!-- 库存数据将通过JavaScript动态加载 -->
+                                    <tr id="loadingRow">
+                                        <td colspan="9" class="text-center">
+                                            <div class="spinner-border spinner-border-sm" role="status">
+                                                <span class="visually-hidden">加载中...</span>
+                                            </div>
+                                            正在加载库存数据...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-info">
+                                        <td colspan="8" class="text-end"><strong>总计:</strong></td>
+                                        <td id="totalValue">¥0.00</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div id="noDataMessage" class="alert alert-warning text-center" style="display: none;">
+                            暂无库存数据，请先添加商品
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle (包含Popper) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 检查登录状态
+        async function checkLogin() {
+            try {
+                const response = await fetch('/api/current-user');
+                const data = await response.json();
+                
+                if (!data.loggedIn) {
+                    window.location.href = 'login.html';
+                } else {
+                    document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
+                    loadStock();
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        // 加载库存数据
+        async function loadStock() {
+            try {
+                // 显示加载状态
+                const loadingRow = document.getElementById('loadingRow');
+                if (loadingRow) {
+                    loadingRow.style.display = '';
+                }
+                
+                const noDataMessage = document.getElementById('noDataMessage');
+                if (noDataMessage) {
+                    noDataMessage.style.display = 'none';
+                }
+                
+                const response = await fetch('/api/stock');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP错误: ${response.status}`);
+                }
+                
+                const stockData = await response.json();
+                console.log('库存数据:', stockData); // 调试信息
+                
+                // 隐藏加载状态
+                if (loadingRow) {
+                    loadingRow.style.display = 'none';
+                }
+                
+                if (stockData.error) {
+                    alert('加载库存失败: ' + stockData.error);
+                    return;
+                }
+                
+                if (stockData.length === 0) {
+                    if (noDataMessage) {
+                        noDataMessage.style.display = 'block';
+                    }
+                }
+                
+                renderStock(stockData);
+            } catch (error) {
+                console.error('加载库存失败:', error);
+                
+                // 安全地隐藏加载状态
+                const loadingRow = document.getElementById('loadingRow');
+                if (loadingRow) {
+                    loadingRow.style.display = 'none';
+                }
+                
+                const tbody = document.getElementById('stockTable');
+                if (tbody) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="9" class="text-center text-danger">
+                                加载失败: ${error.message}
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        // 刷新库存
+        function refreshStock() {
+            loadStock();
+        }
+
+        // 渲染库存数据
+        function renderStock(stockData) {
+            const tbody = document.getElementById('stockTable');
+            if (!tbody) return;
+            
+            tbody.innerHTML = '';
+            
+            let totalValue = 0;
+            
+            if (!stockData || stockData.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="9" class="text-center text-muted">
+                        暂无库存数据
+                    </td>
+                `;
+                tbody.appendChild(row);
+                
+                // 更新总计
+                const totalValueElement = document.getElementById('totalValue');
+                if (totalValueElement) {
+                    totalValueElement.textContent = '¥0.00';
+                }
+                return;
+            }
+            
+            stockData.forEach(item => {
+                const totalIn = item.total_in || 0;
+                const totalOut = item.total_out || 0;
+                const currentStock = item.stock || 0;
+                const retailPrice = item.retail_price || 0;
+                const stockValue = retailPrice * currentStock;
+                totalValue += stockValue;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.id || '-'}</td>
+                    <td>${item.name || '-'}</td>
+                    <td>${item.spec || '-'}</td>
+                    <td>${item.unit || '-'}</td>
+                    <td>${totalIn}</td>
+                    <td>${totalOut}</td>
+                    <td class="${currentStock < 10 ? 'text-danger fw-bold' : ''}">
+                        ${currentStock}
+                    </td>
+                    <td>${retailPrice ? '¥' + parseFloat(retailPrice).toFixed(2) : '-'}</td>
+                    <td>${stockValue ? '¥' + stockValue.toFixed(2) : '-'}</td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // 更新总计
+            const totalValueElement = document.getElementById('totalValue');
+            if (totalValueElement) {
+                totalValueElement.textContent = '¥' + totalValue.toFixed(2);
+            }
+        }
+
+        // 导出Excel
+        function exportToExcel() {
+            const table = document.getElementById('stockTable');
+            if (!table) {
+                alert('表格不存在');
+                return;
+            }
+            
+            const rows = table.getElementsByTagName('tr');
+            
+            if (rows.length === 0 || (rows.length === 1 && rows[0].cells.length === 1)) {
+                alert('没有数据可以导出');
+                return;
+            }
+            
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
+            csvContent += "商品ID,商品名称,规格,单位,总入库,总出库,现有库存,零售价,库存价值\n";
+            
+            for (let i = 0; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                if (cells.length === 0) continue;
+                
+                const row = [];
+                for (let j = 0; j < cells.length; j++) {
+                    let cellText = cells[j].textContent.trim();
+                    // 移除货币符号
+                    cellText = cellText.replace('¥', '');
+                    // 处理逗号，避免CSV解析错误
+                    cellText = cellText.replace(/,/g, '，');
+                    row.push(`"${cellText}"`);
+                }
+                
+                csvContent += row.join(',') + "\n";
+            }
+            
+            // 添加总计
+            const totalValueElement = document.getElementById('totalValue');
+            if (totalValueElement) {
+                const totalValue = totalValueElement.textContent.replace('¥', '');
+                csvContent += `,,,,,,,总计,${totalValue}\n`;
+            }
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            const today = new Date();
+            const dateStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+            link.setAttribute("download", `库存报表_${dateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // 退出登录
+        async function logout() {
+            try {
+                await fetch('/api/logout');
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('退出登录失败:', error);
+            }
+        }
+
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', checkLogin);
+    </script>
+</body>
+</html>

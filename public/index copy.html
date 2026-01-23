@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>仓库进销存管理系统 - 首页</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        /* 自定义样式 */
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+        }
+
+        /* 侧边栏样式 */
+        .offcanvas {
+            width: 250px !important;
+        }
+
+        .offcanvas-body .nav-link {
+            color: #adb5bd;
+            padding: 0.75rem 1rem;
+            border-left: 4px solid transparent;
+        }
+
+        .offcanvas-body .nav-link:hover {
+            color: #fff;
+            background-color: #495057;
+            border-left-color: #007bff;
+        }
+
+        .offcanvas-body .nav-link.active {
+            color: #fff;
+            background-color: #007bff;
+            border-left-color: #007bff;
+        }
+
+        .main-content {
+            padding: 20px;
+            width: 100%;
+        }
+
+        /* 在宽屏设备上（桌面端） */
+        @media (min-width: 768px) {
+            /* 主内容区左边距等于侧边栏宽度 */
+            .main-content {
+                margin-left: 250px;
+                width: calc(100% - 250px);
+            }
+            
+            /* 侧边栏固定在左侧，在导航栏下方 */
+            .offcanvas {
+                position: fixed;
+                top: 56px; /* 导航栏的高度 */
+                left: 0;
+                height: calc(100% - 56px); /* 减去导航栏高度 */
+                transform: none !important;
+                visibility: visible !important;
+                box-shadow: 2px 0 5px rgba(0,0,0,.1);
+                z-index: 1030; /* 确保在内容之上 */
+            }
+            
+            /* 隐藏 offcanvas 的头部 */
+            .offcanvas-header {
+                display: none;
+            }
+            
+            /* 隐藏 offcanvas 的背景遮罩 */
+            .offcanvas-backdrop {
+                display: none !important;
+            }
+            
+            /* 调整导航栏，确保它在侧边栏之上 */
+            .navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1040; /* 确保导航栏在侧边栏之上 */
+            }
+            
+            /* 在导航栏左侧添加边距，避免被侧边栏遮挡 */
+            .navbar .container-fluid {
+                padding-left: 250px !important;
+            }
+        }
+
+        /* 在移动设备上 */
+        @media (max-width: 767.98px) {
+            .offcanvas {
+                z-index: 1045; /* Bootstrap offcanvas 默认 z-index */
+            }
+        }
+
+        .card {
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+            margin-bottom: 20px;
+        }
+
+        .table-responsive {
+            margin-top: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .btn-action {
+            margin-right: 5px;
+        }
+
+        /* 移动端提示样式 */
+        .alert-info {
+            margin-bottom: 20px;
+        }
+
+        /* 防止页面滚动时被固定元素遮挡 */
+        body {
+            padding-top: 56px; /* 导航栏高度 */
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding-top: 56px; /* 导航栏高度 */
+                padding-left: 250px; /* 侧边栏宽度 */
+            }
+            
+            /* 调整主内容区的顶部边距 */
+            .main-content {
+                padding-top: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <button class="navbar-toggler me-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar" aria-controls="sidebar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="index.html">仓库管理系统</a>
+            <div class="d-flex align-items-center text-white">
+                <span id="currentUser" class="me-3"></span>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">退出登录</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="offcanvas offcanvas-start bg-dark" tabindex="-1" id="sidebar" aria-labelledby="sidebarLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title text-white" id="sidebarLabel">菜单</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body p-0">
+            <nav class="nav flex-column">
+                <a class="nav-link text-white active" href="index.html">
+                    <i class="bi bi-house-door me-2"></i>首页
+                </a>
+                <a class="nav-link text-white" href="products.html">
+                    <i class="bi bi-box-seam me-2"></i>商品管理
+                </a>
+                <a class="nav-link text-white" href="in.html">
+                    <i class="bi bi-arrow-down-circle me-2"></i>入库管理
+                </a>
+                <a class="nav-link text-white" href="out.html">
+                    <i class="bi bi-arrow-up-circle me-2"></i>出库管理
+                </a>
+                <a class="nav-link text-white" href="stock.html">
+                    <i class="bi bi-clipboard-data me-2"></i>库存查看
+                </a>
+                <a class="nav-link text-white" href="query.html">
+                    <i class="bi bi-search me-2"></i>库存查询
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="d-block d-md-none alert alert-info alert-dismissible fade show" role="alert">
+            点击左上角菜单图标展开导航
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        
+        <h2>欢迎使用仓库进销存管理系统</h2>
+        <div class="row mt-4">
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-primary">
+                    <div class="card-body">
+                        <h5 class="card-title">商品总数</h5>
+                        <h2 id="totalProducts">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-success">
+                    <div class="card-body">
+                        <h5 class="card-title">总库存量</h5>
+                        <h2 id="totalStock">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-info">
+                    <div class="card-body">
+                        <h5 class="card-title">今日入库</h5>
+                        <h2 id="todayIn">0</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card text-white bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">今日出库</h5>
+                        <h2 id="todayOut">0</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function checkLogin() {
+            try {
+                const response = await fetch('/api/current-user');
+                const data = await response.json();
+                
+                if (!data.loggedIn) {
+                    window.location.href = 'login.html';
+                } else {
+                    document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
+                    loadDashboardData();
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+                window.location.href = 'login.html';
+            }
+        }
+
+        async function loadDashboardData() {
+            try {
+                const productsRes = await fetch('/api/products');
+                const products = await productsRes.json();
+                document.getElementById('totalProducts').textContent = products.length;
+                
+                const totalStock = products.reduce((sum, product) => sum + product.stock, 0);
+                document.getElementById('totalStock').textContent = totalStock;
+                
+                const today = new Date().toISOString().split('T')[0];
+                const inRes = await fetch('/api/in-records');
+                const inRecords = await inRes.json();
+                const todayIn = inRecords.filter(record => record.recorded_date === today)
+                    .reduce((sum, record) => sum + record.quantity, 0);
+                document.getElementById('todayIn').textContent = todayIn;
+                
+                const outRes = await fetch('/api/out-records');
+                const outRecords = await outRes.json();
+                const todayOut = outRecords.filter(record => record.recorded_date === today)
+                    .reduce((sum, record) => sum + record.quantity, 0);
+                document.getElementById('todayOut').textContent = todayOut;
+            } catch (error) {
+                console.error('加载仪表盘数据失败:', error);
+            }
+        }
+
+        async function logout() {
+            try {
+                await fetch('/api/logout');
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('退出登录失败:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', checkLogin);
+    </script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

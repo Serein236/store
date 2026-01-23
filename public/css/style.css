@@ -1,0 +1,136 @@
+/* 自定义样式 */
+body {
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+/* 侧边栏样式 */
+.offcanvas {
+    width: 250px !important;
+}
+
+.offcanvas-body .nav-link {
+    color: #adb5bd;
+    padding: 0.75rem 1rem;
+    border-left: 4px solid transparent;
+}
+
+.offcanvas-body .nav-link:hover {
+    color: #fff;
+    background-color: #495057;
+    border-left-color: #007bff;
+}
+
+.offcanvas-body .nav-link.active {
+    color: #fff;
+    background-color: #007bff;
+    border-left-color: #007bff;
+}
+
+.main-content {
+    padding: 20px;
+    width: 100%;
+}
+
+/* 在宽屏设备上（桌面端） */
+@media (min-width: 768px) {
+    /* 主内容区左边距等于侧边栏宽度 */
+    .main-content {
+        margin-left: 250px;
+        width: calc(100% - 250px);
+    }
+    
+    /* 侧边栏固定在左侧，在导航栏下方 */
+    .offcanvas {
+        position: fixed;
+        top: 56px; /* 导航栏的高度 */
+        left: 0;
+        height: calc(100% - 56px); /* 减去导航栏高度 */
+        transform: none !important;
+        visibility: visible !important;
+        box-shadow: 2px 0 5px rgba(0,0,0,.1);
+        z-index: 1030; /* 确保在内容之上 */
+    }
+    
+    /* 隐藏 offcanvas 的头部 */
+    .offcanvas-header {
+        display: none;
+    }
+    
+    /* 隐藏 offcanvas 的背景遮罩 */
+    .offcanvas-backdrop {
+        display: none !important;
+    }
+    
+    /* 调整导航栏，确保它在侧边栏之上 */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1040; /* 确保导航栏在侧边栏之上 */
+    }
+    
+    /* 在导航栏左侧添加边距，避免被侧边栏遮挡 */
+    .navbar .container-fluid {
+        padding-left: 250px !important;
+    }
+}
+
+/* 在移动设备上 */
+@media (max-width: 767.98px) {
+    .offcanvas {
+        z-index: 1045; /* Bootstrap offcanvas 默认 z-index */
+    }
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    margin-bottom: 20px;
+}
+
+.table-responsive {
+    margin-top: 20px;
+}
+
+.login-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,.1);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.btn-action {
+    margin-right: 5px;
+}
+
+/* 移动端提示样式 */
+.alert-info {
+    margin-bottom: 20px;
+}
+
+/* 防止页面滚动时被固定元素遮挡 */
+body {
+    padding-top: 56px; /* 导航栏高度 */
+}
+
+@media (min-width: 768px) {
+    body {
+        padding-top: 56px; /* 导航栏高度 */
+        padding-left: 250px; /* 侧边栏宽度 */
+    }
+    
+    /* 调整主内容区的顶部边距 */
+    .main-content {
+        padding-top: 0;
+    }
+}

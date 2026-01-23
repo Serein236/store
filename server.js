@@ -1,9 +1,9 @@
 const express = require('express');
-const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
+const db = require('./db');
 
 const app = express();
 const port = 3000;
@@ -19,22 +19,7 @@ app.use(session({
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 } // 24小时
 }));
 
-// 数据库连接配置
-const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: 'root', // 请修改为你的数据库密码
-    database: 'store',
-    charset: 'utf8mb4'
-});
 
-db.connect(err => {
-    if (err) {
-        console.error('数据库连接失败:', err);
-        return;
-    }
-    console.log('数据库连接成功');
-});
 
 // 登录验证中间件
 function requireLogin(req, res, next) {

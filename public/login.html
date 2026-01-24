@@ -1,95 +1,29 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>仓库管理系统 - 登录</title>
-    <!-- Bootstrap CSS from Cloudflare -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- 公共样式 -->
+    <link href="css/common.css" rel="stylesheet">
     <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .login-container {
-            max-width: 450px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
-            overflow: hidden;
-            border: none;
-        }
-
-        .login-header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .login-header h2 {
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-        }
-
+        /* 登录页面专属样式 */
         .login-body {
             padding: 2rem;
         }
-
+        
         .form-control:focus {
             border-color: #6a11cb;
             box-shadow: 0 0 0 0.25rem rgba(106, 17, 203, 0.25);
         }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            border: none;
-            padding: 0.75rem;
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
-        }
-
-        .input-group-text {
-            background-color: #f8f9fa;
-            border-right: none;
-        }
-
-        .form-control {
-            border-left: none;
-        }
-
-        footer {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: rgba(255, 255, 255, .1);
-            padding: 12px 0;
-            text-align: center;
-            font-size: 0.875rem;
-            color: white;
-            backdrop-filter: blur(10px);
-        }
     </style>
 </head>
 
-<body>
+<body class="login-bg">
     <div class="login-container">
         <div class="login-card">
             <div class="login-header">

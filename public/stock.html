@@ -1,103 +1,24 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>库存查看 - 仓库管理系统</title>
-    <!-- Bootstrap CSS from Cloudflare -->
+    <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- 公共样式 -->
+    <link href="css/common.css" rel="stylesheet">
     <style>
-        body {
-            background-color: #f8f9fa;
-            padding-bottom: 60px;
-            padding-top: 80px;
+        /* 库存查看专属样式 */
+        #loadingRow {
+            height: 200px;
         }
-
-        .navbar {
-            box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
-        }
-
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, .08);
-            margin-bottom: 24px;
-        }
-
-        .card-header {
-            background-color: #f8f9fa;
-            border-bottom: 1px solid rgba(0, 0, 0, .125);
-            padding: 1rem 1.25rem;
-            font-weight: 600;
-        }
-
-        .table thead th {
-            background-color: #f8f9fa;
-            font-weight: 600;
-            border-bottom: 2px solid #dee2e6;
-        }
-
-        .table-hover tbody tr:hover {
-            background-color: rgba(106, 17, 203, 0.05);
-        }
-
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background-color: #f8f9fa;
-            border-top: 1px solid #dee2e6;
-            padding: 12px 0;
-            text-align: center;
-            font-size: 0.875rem;
-            color: #6c757d;
-            z-index: 1000;
-        }
-
-        .main-content {
-            padding: 20px;
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            color: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, .1);
-        }
-
-        .btn-success {
-            background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-        }
-
-        .btn-success:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 176, 155, 0.3);
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-            border: none;
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
-        }
-
-        .table tfoot {
-            font-weight: 600;
-            background-color: #f8f9fa;
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
         }
     </style>
 </head>

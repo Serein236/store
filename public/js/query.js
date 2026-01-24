@@ -88,7 +88,7 @@ async function checkLogin() {
                     <p><strong>装箱规格:</strong> ${product.packing_spec || '-'}</p>
                 </div>
                 <div class="col-md-1">
-                    <p><strong>零售价:</strong> ${product.retail_price ? '¥' + product.retail_price.toFixed(2) : '-'}</p>
+                    <p><strong>零售价:</strong> ${product.retail_price ? '¥' + parseFloat(product.retail_price).toFixed(2) : '-'}</p>
                 </div>
                 <div class="col-md-2">
                     <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock}</span></p>

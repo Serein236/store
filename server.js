@@ -288,6 +288,13 @@ app.get('/api/query/:productId', async (req, res) => {
             return res.json({ success: false, message: '商品不存在' });
         }
         
+        // 确保retail_price和stock是数字类型
+        const formattedProduct = {
+            ...product[0],
+            retail_price: parseFloat(product[0].retail_price) || 0,
+            stock: parseInt(product[0].stock) || 0
+        };
+        
         // 构建查询条件
         let whereCondition = 'WHERE product_id = ?';
         const params = [productId];
@@ -329,7 +336,7 @@ app.get('/api/query/:productId', async (req, res) => {
         
         res.json({
             success: true,
-            product: product[0],
+            product: formattedProduct,
             inRecords: inRecords.map(record => ({
                 ...record,
                 recorded_date: record.display_date

@@ -18,8 +18,25 @@ const ProductModel = {
         return await dbUtils.queryOne('SELECT * FROM products WHERE barcode = ?', [barcode]);
     },
 
+    // 生成随机6位数商品编码
+    generateProductCode() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    },
+
     async create(productData) {
-        const { product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = productData;
+        const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = productData;
+        // 自动生成随机6位数商品编码，确保唯一性
+        let product_code;
+        let isUnique = false;
+        
+        while (!isUnique) {
+            product_code = this.generateProductCode();
+            const existingProduct = await this.findByProductCode(product_code);
+            if (!existingProduct) {
+                isUnique = true;
+            }
+        }
+        
         const result = await dbUtils.insert(
             'INSERT INTO products (product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
             [product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer]
@@ -31,14 +48,14 @@ const ProductModel = {
             [result.insertId]
         );
         
-        return { id: result.insertId, ...productData };
+        return { id: result.insertId, product_code, ...productData };
     },
 
     async update(id, productData) {
-        const { product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = productData;
+        const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = productData;
         await dbUtils.update(
-            'UPDATE products SET product_code = ?, name = ?, spec = ?, unit = ?, packing_spec = ?, retail_price = ?, barcode = ?, manufacturer = ? WHERE id = ?',
-            [product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer, id]
+            'UPDATE products SET name = ?, spec = ?, unit = ?, packing_spec = ?, retail_price = ?, barcode = ?, manufacturer = ? WHERE id = ?',
+            [name, spec, unit, packing_spec, retail_price, barcode, manufacturer, id]
         );
         return { id, ...productData };
     },

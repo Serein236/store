@@ -63,7 +63,6 @@ let products = [];
             e.preventDefault();
 
             const productData = {
-                product_code: document.getElementById('productCode').value,
                 name: document.getElementById('productName').value,
                 spec: document.getElementById('productSpec').value,
                 unit: document.getElementById('unit').value,
@@ -102,7 +101,6 @@ let products = [];
             if (!product) return;
 
             document.getElementById('editProductId').value = product.id;
-            document.getElementById('editProductCode').value = product.product_code || '';
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductSpec').value = product.spec || '';
             document.getElementById('editPackingSpec').value = product.packing_spec || '';
@@ -117,7 +115,6 @@ let products = [];
         async function updateProduct() {
             const id = document.getElementById('editProductId').value;
             const productData = {
-                product_code: document.getElementById('editProductCode').value,
                 name: document.getElementById('editProductName').value,
                 spec: document.getElementById('editProductSpec').value,
                 packing_spec: document.getElementById('editPackingSpec').value,

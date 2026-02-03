@@ -89,10 +89,7 @@
             <div class="card-body">
                 <form id="addProductForm">
                     <div class="row g-3">
-                        <div class="col-md-3">
-                            <label for="productCode" class="form-label">商品编码 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="productCode" required placeholder="请输入商品编码">
-                        </div>
+                        <input type="hidden" id="productCode" value="">
                         <div class="col-md-3">
                             <label for="productName" class="form-label">商品名称 <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" id="productName" required placeholder="请输入商品名称">
@@ -228,6 +225,21 @@
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // 生成随机6位数商品编码
+        function generateProductCode() {
+            return Math.floor(100000 + Math.random() * 900000).toString();
+        }
+
+        // 页面加载时为商品编码输入框设置随机值
+        document.addEventListener('DOMContentLoaded', function() {
+            const productCodeInput = document.getElementById('productCode');
+            if (productCodeInput) {
+                productCodeInput.value = generateProductCode();
+            }
+        });
+    </script>
 
     <script src="js/products.js"></script>
 </body>

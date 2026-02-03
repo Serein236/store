@@ -1,6 +1,6 @@
 async function createDefaultAdmin() {
             try {
-                const response = await fetch('/api/products');
+                const response = await fetch('/api/auth/current-user');
                 console.log('数据库连接正常');
             } catch (error) {
                 console.log('首次运行可能需要初始化数据库');
@@ -14,7 +14,7 @@ async function createDefaultAdmin() {
             const password = document.getElementById('password').value;
 
             try {
-                const response = await fetch('/api/login', {
+                const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

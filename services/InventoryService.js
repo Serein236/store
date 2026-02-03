@@ -36,7 +36,7 @@ const InventoryService = {
     },
 
     async getStockReport() {
-        const [rows] = await dbUtils.promisePool.query(`
+        return await dbUtils.query(`
             SELECT p.*, 
                    IFNULL(SUM(i.quantity), 0) as total_in,
                    IFNULL(SUM(o.quantity), 0) as total_out
@@ -46,7 +46,6 @@ const InventoryService = {
             GROUP BY p.id
             ORDER BY p.id DESC
         `);
-        return rows;
     },
 
     async getProductDetail(productId, month = null) {
@@ -58,7 +57,7 @@ const InventoryService = {
         const inRecords = await InRecordModel.findByProductId(productId, month);
         const outRecords = await OutRecordModel.findByProductId(productId, month);
         
-        const [monthlyStats] = await dbUtils.promisePool.query(`
+        const monthlyStats = await dbUtils.query(`
             SELECT 
                 DATE_FORMAT(recorded_date, '%Y-%m') as month,
                 SUM(CASE WHEN type IN ('purchase', 'return') THEN quantity ELSE 0 END) as in_quantity,

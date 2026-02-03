@@ -1,6 +1,6 @@
 async function checkLogin() {
             try {
-                const response = await fetch('/api/current-user');
+                const response = await fetch('/api/auth/current-user');
                 const data = await response.json();
                 if (!data.loggedIn) {
                     window.location.href = 'login.html';
@@ -106,7 +106,7 @@ async function checkLogin() {
 
         async function logout() {
             try {
-                await fetch('/api/logout');
+                await fetch('/api/auth/logout');
                 window.location.href = 'login.html';
             } catch (error) {
                 console.error('退出登录失败:', error);

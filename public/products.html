@@ -118,6 +118,14 @@
                             <label for="manufacturer" class="form-label">生产厂家</label>
                             <input type="text" class="form-control" id="manufacturer" placeholder="请输入生产厂家">
                         </div>
+                        <div class="col-md-2">
+                            <label for="warningQuantity" class="form-label">警告库存</label>
+                            <input type="number" class="form-control" id="warningQuantity" value="10" placeholder="警告库存数量">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="dangerQuantity" class="form-label">危险库存</label>
+                            <input type="number" class="form-control" id="dangerQuantity" value="5" placeholder="危险库存数量">
+                        </div>
                         <div class="col-md-6 align-self-end">
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-plus-circle me-2"></i>添加商品
@@ -145,7 +153,6 @@
                                 <th>装箱规格</th>
                                 <th>单位</th>
                                 <th>零售价</th>
-                                <th>条形码</th>
                                 <th>生产厂家</th>
                                 <th>库存</th>
                                 <th>操作</th>
@@ -162,7 +169,7 @@
 
     <!-- 编辑商品模态框 -->
     <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>编辑商品</h5>
@@ -171,45 +178,122 @@
                 <div class="modal-body">
                     <form id="editProductForm">
                         <input type="hidden" id="editProductId">
-                        <div class="mb-3">
-                            <label class="form-label">商品编码 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="editProductCode" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">商品名称 <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="editProductName" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">产品规格</label>
-                            <input type="text" class="form-control" id="editProductSpec">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">装箱规格</label>
-                            <input type="text" class="form-control" id="editPackingSpec">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">单位</label>
-                            <input type="text" class="form-control" id="editUnit">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">零售价</label>
-                            <input type="number" step="0.01" class="form-control" id="editRetailPrice">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">条形码</label>
-                            <input type="text" class="form-control" id="editBarcode">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">生产厂家</label>
-                            <input type="text" class="form-control" id="editManufacturer">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">商品编码 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editProductCode" required disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">商品名称 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editProductName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">产品规格</label>
+                                    <input type="text" class="form-control" id="editProductSpec">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">装箱规格</label>
+                                    <input type="text" class="form-control" id="editPackingSpec">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">单位</label>
+                                    <input type="text" class="form-control" id="editUnit">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">零售价</label>
+                                    <input type="number" step="0.01" class="form-control" id="editRetailPrice">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">条形码</label>
+                                    <input type="text" class="form-control" id="editBarcode">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">生产厂家</label>
+                                    <input type="text" class="form-control" id="editManufacturer">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">警告库存</label>
+                                    <input type="number" class="form-control" id="editWarningQuantity">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">危险库存</label>
+                                    <input type="number" class="form-control" id="editDangerQuantity">
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" onclick="updateProduct()">
-                        <i class="bi bi-check-circle me-2"></i>保存
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="updateProduct()">
+                        <i class="bi bi-check-circle me-1"></i>保存
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看商品详情模态框 -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>商品详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">商品编码</label>
+                                <p class="form-control-plaintext" id="detailProductCode"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">商品名称</label>
+                                <p class="form-control-plaintext" id="detailProductName"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">产品规格</label>
+                                <p class="form-control-plaintext" id="detailProductSpec"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">装箱规格</label>
+                                <p class="form-control-plaintext" id="detailPackingSpec"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">单位</label>
+                                <p class="form-control-plaintext" id="detailUnit"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">零售价</label>
+                                <p class="form-control-plaintext" id="detailRetailPrice"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">条形码</label>
+                                <p class="form-control-plaintext" id="detailBarcode"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">生产厂家</label>
+                                <p class="form-control-plaintext" id="detailManufacturer"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">警告库存</label>
+                                <p class="form-control-plaintext" id="detailWarningQuantity"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">危险库存</label>
+                                <p class="form-control-plaintext" id="detailDangerQuantity"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">关闭</button>
                 </div>
             </div>
         </div>

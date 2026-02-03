@@ -1,5 +1,6 @@
 let products = [];
         let editModal = null;
+        let detailModal = null;
 
         async function checkLogin() {
             try {
@@ -12,6 +13,7 @@ let products = [];
                     document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
                     loadProducts();
                     editModal = new bootstrap.Modal(document.getElementById('editModal'));
+                    detailModal = new bootstrap.Modal(document.getElementById('detailModal'));
                 }
             } catch (error) {
                 console.error('检查登录状态失败:', error);
@@ -43,10 +45,12 @@ let products = [];
                     <td>${product.packing_spec || '-'}</td>
                     <td>${product.unit || '-'}</td>
                     <td>${product.retail_price ? '¥' + product.retail_price : '-'}</td>
-                    <td>${product.barcode || '-'}</td>
                     <td>${product.manufacturer || '-'}</td>
                     <td><span class="badge ${(product.stock || 0) < 10 ? 'bg-danger' : 'bg-success'}">${product.stock || 0}</span></td>
                     <td>
+                        <button class="btn btn-sm btn-info btn-action" onclick="viewProductDetails(${product.id})">
+                            <i class="bi bi-eye"></i> 详情
+                        </button>
                         <button class="btn btn-sm btn-primary btn-action" onclick="editProduct(${product.id})">
                             <i class="bi bi-pencil"></i> 编辑
                         </button>
@@ -69,7 +73,9 @@ let products = [];
                 packing_spec: document.getElementById('packingSpec').value,
                 retail_price: document.getElementById('retailPrice').value || null,
                 barcode: document.getElementById('barcode').value || null,
-                manufacturer: document.getElementById('manufacturer').value || null
+                manufacturer: document.getElementById('manufacturer').value || null,
+                warning_quantity: document.getElementById('warningQuantity').value || 10,
+                danger_quantity: document.getElementById('dangerQuantity').value || 5
             };
 
             try {
@@ -101,6 +107,7 @@ let products = [];
             if (!product) return;
 
             document.getElementById('editProductId').value = product.id;
+            document.getElementById('editProductCode').value = product.product_code || '';
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductSpec').value = product.spec || '';
             document.getElementById('editPackingSpec').value = product.packing_spec || '';
@@ -108,8 +115,28 @@ let products = [];
             document.getElementById('editRetailPrice').value = product.retail_price || '';
             document.getElementById('editBarcode').value = product.barcode || '';
             document.getElementById('editManufacturer').value = product.manufacturer || '';
+            document.getElementById('editWarningQuantity').value = product.warning_quantity || 10;
+            document.getElementById('editDangerQuantity').value = product.danger_quantity || 5;
 
             editModal.show();
+        }
+
+        function viewProductDetails(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            document.getElementById('detailProductCode').textContent = product.product_code || '-';
+            document.getElementById('detailProductName').textContent = product.name || '-';
+            document.getElementById('detailProductSpec').textContent = product.spec || '-';
+            document.getElementById('detailPackingSpec').textContent = product.packing_spec || '-';
+            document.getElementById('detailUnit').textContent = product.unit || '-';
+            document.getElementById('detailRetailPrice').textContent = product.retail_price ? '¥' + product.retail_price : '-';
+            document.getElementById('detailBarcode').textContent = product.barcode || '-';
+            document.getElementById('detailManufacturer').textContent = product.manufacturer || '-';
+            document.getElementById('detailWarningQuantity').textContent = product.warning_quantity || 10;
+            document.getElementById('detailDangerQuantity').textContent = product.danger_quantity || 5;
+
+            detailModal.show();
         }
 
         async function updateProduct() {
@@ -121,7 +148,9 @@ let products = [];
                 unit: document.getElementById('editUnit').value,
                 retail_price: document.getElementById('editRetailPrice').value || null,
                 barcode: document.getElementById('editBarcode').value || null,
-                manufacturer: document.getElementById('editManufacturer').value || null
+                manufacturer: document.getElementById('editManufacturer').value || null,
+                warning_quantity: document.getElementById('editWarningQuantity').value || 10,
+                danger_quantity: document.getElementById('editDangerQuantity').value || 5
             };
 
             try {

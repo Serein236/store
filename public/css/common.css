@@ -56,6 +56,17 @@ body {
     box-shadow: 0 5px 15px rgba(106, 17, 203, 0.3);
 }
 
+/* 小按钮样式 */
+.btn-sm {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.5 !important;
+}
+
+.btn-sm i {
+    font-size: 0.875rem !important;
+}
+
 /* 表格样式 */
 .table thead th {
     background-color: #f8f9fa;

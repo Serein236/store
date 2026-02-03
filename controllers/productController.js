@@ -13,7 +13,7 @@ const productController = {
     },
 
     async createProduct(req, res) {
-        const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = req.body;
+        const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity } = req.body;
         
         try {
             // 检查条形码是否已存在
@@ -28,7 +28,7 @@ const productController = {
             }
             
             const product = await ProductModel.create({
-                name, spec, unit, packing_spec, retail_price, barcode, manufacturer
+                name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity
             });
             res.json({ success: true, id: product.id });
         } catch (error) {
@@ -42,7 +42,7 @@ const productController = {
 
     async updateProduct(req, res) {
         const { id } = req.params;
-        const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = req.body;
+        const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity } = req.body;
         
         try {
             // 检查条形码是否已被其他商品使用
@@ -57,7 +57,7 @@ const productController = {
             }
             
             await ProductModel.update(id, {
-                name, spec, unit, packing_spec, retail_price, barcode, manufacturer
+                name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity
             });
             res.json({ success: true });
         } catch (error) {

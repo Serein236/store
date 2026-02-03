@@ -145,12 +145,13 @@ async function checkLogin() {
 
             if (data.inRecords && data.inRecords.length > 0) {
                 data.inRecords.forEach(record => {
-                    const typeText = record.type === 'purchase' ? '采购入库' : '退货入库';
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${record.recorded_date}</td>
-                        <td><span class="badge ${record.type === 'purchase' ? 'bg-primary' : 'bg-info'}">${typeText}</span></td>
+                        <td><span class="badge bg-primary">${record.stock_method_name || '-'}</span></td>
                         <td><span class="badge bg-success">${record.quantity}</span></td>
+                        <td>¥${parseFloat(record.unit_price || 0).toFixed(2)}</td>
+                        <td>¥${parseFloat(record.total_amount || 0).toFixed(2)}</td>
                         <td>${record.source || '-'}</td>
                         <td>${record.remark || '-'}</td>
                     `;
@@ -159,7 +160,7 @@ async function checkLogin() {
             } else {
                 inDetailsTable.innerHTML = `
                     <tr>
-                        <td colspan="5" class="text-center text-muted">
+                        <td colspan="7" class="text-center text-muted">
                             <i class="bi bi-arrow-down-circle me-2"></i>暂无入库记录
                         </td>
                     </tr>
@@ -171,12 +172,13 @@ async function checkLogin() {
 
             if (data.outRecords && data.outRecords.length > 0) {
                 data.outRecords.forEach(record => {
-                    const typeText = record.type === 'sale' ? '销售出库' : '其他';
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td>${record.recorded_date}</td>
-                        <td><span class="badge bg-warning">${typeText}</span></td>
+                        <td><span class="badge bg-warning">${record.stock_method_name || '-'}</span></td>
                         <td><span class="badge bg-danger">${record.quantity}</span></td>
+                        <td>¥${parseFloat(record.unit_price || 0).toFixed(2)}</td>
+                        <td>¥${parseFloat(record.total_amount || 0).toFixed(2)}</td>
                         <td>${record.destination || '-'}</td>
                         <td>${record.remark || '-'}</td>
                     `;
@@ -185,7 +187,7 @@ async function checkLogin() {
             } else {
                 outDetailsTable.innerHTML = `
                     <tr>
-                        <td colspan="5" class="text-center text-muted">
+                        <td colspan="7" class="text-center text-muted">
                             <i class="bi bi-arrow-up-circle me-2"></i>暂无出库记录
                         </td>
                     </tr>

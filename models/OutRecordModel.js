@@ -3,10 +3,10 @@ const dbUtils = require('../utils/dbUtils');
 
 const OutRecordModel = {
     async create(recordData) {
-        const { product_id, type, quantity, remark, destination, recorded_date } = recordData;
+        const { product_id, stock_method_name, quantity, unit_price, total_amount, destination, remark, recorded_date, created_by } = recordData;
         const result = await dbUtils.insert(
-            'INSERT INTO out_records (product_id, type, quantity, remark, destination, recorded_date) VALUES (?, ?, ?, ?, ?, ?)',
-            [product_id, type, quantity, remark, destination, recorded_date]
+            'INSERT INTO out_records (product_id, stock_method_name, quantity, unit_price, total_amount, destination, remark, recorded_date, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [product_id, stock_method_name, quantity, unit_price, total_amount, destination, remark, recorded_date, created_by]
         );
         return { id: result.insertId, ...recordData };
     },
@@ -35,6 +35,15 @@ const OutRecordModel = {
             `SELECT *, DATE_FORMAT(recorded_date, '%Y-%m-%d') as display_date 
              FROM out_records ${whereCondition} ORDER BY recorded_date DESC`,
             params
+        );
+    },
+
+    async getMonthlyStats(productId, month) {
+        return await dbUtils.queryOne(
+            `SELECT SUM(quantity) as total_out 
+             FROM out_records 
+             WHERE product_id = ? AND DATE_FORMAT(recorded_date, "%Y-%m") = ?`,
+            [productId, month]
         );
     }
 };

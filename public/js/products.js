@@ -37,12 +37,15 @@ let products = [];
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${product.id}</td>
+                    <td>${product.product_code}</td>
                     <td>${product.name}</td>
                     <td>${product.spec || '-'}</td>
                     <td>${product.packing_spec || '-'}</td>
                     <td>${product.unit || '-'}</td>
                     <td>${product.retail_price ? '¥' + product.retail_price : '-'}</td>
-                    <td><span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock}</span></td>
+                    <td>${product.barcode || '-'}</td>
+                    <td>${product.manufacturer || '-'}</td>
+                    <td><span class="badge ${(product.stock || 0) < 10 ? 'bg-danger' : 'bg-success'}">${product.stock || 0}</span></td>
                     <td>
                         <button class="btn btn-sm btn-primary btn-action" onclick="editProduct(${product.id})">
                             <i class="bi bi-pencil"></i> 编辑
@@ -60,11 +63,14 @@ let products = [];
             e.preventDefault();
 
             const productData = {
+                product_code: document.getElementById('productCode').value,
                 name: document.getElementById('productName').value,
                 spec: document.getElementById('productSpec').value,
                 unit: document.getElementById('unit').value,
                 packing_spec: document.getElementById('packingSpec').value,
-                retail_price: document.getElementById('retailPrice').value || null
+                retail_price: document.getElementById('retailPrice').value || null,
+                barcode: document.getElementById('barcode').value || null,
+                manufacturer: document.getElementById('manufacturer').value || null
             };
 
             try {
@@ -96,11 +102,14 @@ let products = [];
             if (!product) return;
 
             document.getElementById('editProductId').value = product.id;
+            document.getElementById('editProductCode').value = product.product_code || '';
             document.getElementById('editProductName').value = product.name;
             document.getElementById('editProductSpec').value = product.spec || '';
             document.getElementById('editPackingSpec').value = product.packing_spec || '';
             document.getElementById('editUnit').value = product.unit || '';
             document.getElementById('editRetailPrice').value = product.retail_price || '';
+            document.getElementById('editBarcode').value = product.barcode || '';
+            document.getElementById('editManufacturer').value = product.manufacturer || '';
 
             editModal.show();
         }
@@ -108,11 +117,14 @@ let products = [];
         async function updateProduct() {
             const id = document.getElementById('editProductId').value;
             const productData = {
+                product_code: document.getElementById('editProductCode').value,
                 name: document.getElementById('editProductName').value,
                 spec: document.getElementById('editProductSpec').value,
                 packing_spec: document.getElementById('editPackingSpec').value,
                 unit: document.getElementById('editUnit').value,
-                retail_price: document.getElementById('editRetailPrice').value || null
+                retail_price: document.getElementById('editRetailPrice').value || null,
+                barcode: document.getElementById('editBarcode').value || null,
+                manufacturer: document.getElementById('editManufacturer').value || null
             };
 
             try {

@@ -96,15 +96,29 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label for="type" class="form-label">出库方式 <span class="text-danger">*</span></label>
-                            <select class="form-select" id="type" required>
-                                <option value="sale">销售出库</option>
+                            <label for="stock_method_name" class="form-label">出库方式 <span class="text-danger">*</span></label>
+                            <select class="form-select" id="stock_method_name" required>
+                                <option value="销售出库">销售出库</option>
+                                <option value="调拨出库">调拨出库</option>
+                                <option value="报损出库">报损出库</option>
+                                <option value="样品出库">样品出库</option>
+                                <option value="其他出库">其他出库</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-4">
                             <label for="quantity" class="form-label">出库数量 <span class="text-danger">*</span></label>
                             <input type="number" class="form-control" id="quantity" min="1" required
                                 placeholder="请输入出库数量">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="unit_price" class="form-label">出库单价 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="unit_price" min="0" step="0.01" required
+                                placeholder="请输入出库单价">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="total_amount" class="form-label">总金额 <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="total_amount" min="0" step="0.01" required
+                                placeholder="自动计算">
                         </div>
                         <div class="col-md-6">
                             <label for="recordedDate" class="form-label">出库日期 <span class="text-danger">*</span></label>
@@ -112,9 +126,9 @@
                         </div>
                         <div class="col-md-6">
                             <label for="destination" class="form-label">去向</label>
-                            <input type="text" class="form-control" id="destination" placeholder="客户名称">
+                            <input type="text" class="form-control" id="destination" placeholder="如客户名称">
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label for="remark" class="form-label">备注</label>
                             <textarea class="form-control" id="remark" rows="2" placeholder="可选填写"></textarea>
                         </div>

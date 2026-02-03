@@ -13,6 +13,9 @@ async function checkLogin() {
                     const month = String(today.getMonth() + 1).padStart(2, '0');
                     const day = String(today.getDate()).padStart(2, '0');
                     document.getElementById('recordedDate').value = `${year}-${month}-${day}`;
+                    // 添加计算总金额的事件监听
+                    document.getElementById('quantity').addEventListener('input', calculateTotal);
+                    document.getElementById('unit_price').addEventListener('input', calculateTotal);
                 }
             } catch (error) {
                 console.error('检查登录状态失败:', error);
@@ -29,7 +32,7 @@ async function checkLogin() {
                 products.forEach(product => {
                     const option = document.createElement('option');
                     option.value = product.id;
-                    option.textContent = `${product.name} (库存: ${product.stock})`;
+                    option.textContent = `${product.name} (库存: ${product.stock || 0})`;
                     select.appendChild(option);
                 });
             } catch (error) {
@@ -52,13 +55,14 @@ async function checkLogin() {
             tbody.innerHTML = '';
             records.forEach(record => {
                 const row = document.createElement('tr');
-                const typeText = record.type === 'purchase' ? '采购入库' : '退货入库';
                 const createdAt = new Date(record.created_at).toLocaleString('zh-CN');
                 row.innerHTML = `
                     <td>${record.id}</td>
                     <td>${record.product_name}</td>
-                    <td><span class="badge ${record.type === 'purchase' ? 'bg-primary' : 'bg-info'}">${typeText}</span></td>
+                    <td><span class="badge bg-primary">${record.stock_method_name}</span></td>
                     <td><span class="badge bg-success">${record.quantity}</span></td>
+                    <td>¥${record.unit_price.toFixed(2)}</td>
+                    <td>¥${record.total_amount.toFixed(2)}</td>
                     <td>${record.source || '-'}</td>
                     <td>${record.recorded_date}</td>
                     <td>${record.remark || '-'}</td>
@@ -68,12 +72,21 @@ async function checkLogin() {
             });
         }
 
+        function calculateTotal() {
+            const quantity = parseFloat(document.getElementById('quantity').value) || 0;
+            const unitPrice = parseFloat(document.getElementById('unit_price').value) || 0;
+            const totalAmount = quantity * unitPrice;
+            document.getElementById('total_amount').value = totalAmount.toFixed(2);
+        }
+
         document.getElementById('inForm').addEventListener('submit', async function (e) {
             e.preventDefault();
             const inData = {
                 product_id: document.getElementById('productId').value,
-                type: document.getElementById('type').value,
+                stock_method_name: document.getElementById('stock_method_name').value,
                 quantity: parseInt(document.getElementById('quantity').value),
+                unit_price: parseFloat(document.getElementById('unit_price').value),
+                total_amount: parseFloat(document.getElementById('total_amount').value),
                 remark: document.getElementById('remark').value,
                 source: document.getElementById('source').value,
                 recorded_date: document.getElementById('recordedDate').value

@@ -13,11 +13,31 @@ const productController = {
     },
 
     async createProduct(req, res) {
-        const { name, spec, unit, packing_spec, retail_price } = req.body;
+        const { product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = req.body;
         
         try {
+            // 检查商品编码是否已存在
+            const existingProductByCode = await ProductModel.findByProductCode(product_code);
+            if (existingProductByCode) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: '商品编码已存在' 
+                });
+            }
+            
+            // 检查条形码是否已存在
+            if (barcode) {
+                const existingProductByBarcode = await ProductModel.findByBarcode(barcode);
+                if (existingProductByBarcode) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        message: '条形码已存在' 
+                    });
+                }
+            }
+            
             const product = await ProductModel.create({
-                name, spec, unit, packing_spec, retail_price
+                product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer
             });
             res.json({ success: true, id: product.id });
         } catch (error) {
@@ -31,11 +51,31 @@ const productController = {
 
     async updateProduct(req, res) {
         const { id } = req.params;
-        const { name, spec, unit, packing_spec, retail_price } = req.body;
+        const { product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer } = req.body;
         
         try {
+            // 检查商品编码是否已被其他商品使用
+            const existingProductByCode = await ProductModel.findByProductCode(product_code);
+            if (existingProductByCode && existingProductByCode.id != id) {
+                return res.status(400).json({ 
+                    success: false, 
+                    message: '商品编码已存在' 
+                });
+            }
+            
+            // 检查条形码是否已被其他商品使用
+            if (barcode) {
+                const existingProductByBarcode = await ProductModel.findByBarcode(barcode);
+                if (existingProductByBarcode && existingProductByBarcode.id != id) {
+                    return res.status(400).json({ 
+                        success: false, 
+                        message: '条形码已存在' 
+                    });
+                }
+            }
+            
             await ProductModel.update(id, {
-                name, spec, unit, packing_spec, retail_price
+                product_code, name, spec, unit, packing_spec, retail_price, barcode, manufacturer
             });
             res.json({ success: true });
         } catch (error) {

@@ -2,6 +2,7 @@
 const ProductModel = require('../models/ProductModel');
 const InRecordModel = require('../models/InRecordModel');
 const OutRecordModel = require('../models/OutRecordModel');
+const StockModel = require('../models/StockModel');
 const dbUtils = require('../utils/dbUtils');
 
 const InventoryService = {
@@ -11,7 +12,7 @@ const InventoryService = {
             const record = await InRecordModel.create(data);
             
             // 更新库存
-            await ProductModel.updateStock(data.product_id, data.quantity);
+            await StockModel.updateStock(data.product_id, data.quantity, 0);
             
             return record;
         });
@@ -20,8 +21,8 @@ const InventoryService = {
     async outStock(data) {
         return await dbUtils.executeTransaction(async (connection) => {
             // 检查库存
-            const product = await ProductModel.findById(data.product_id);
-            if (!product || product.stock < data.quantity) {
+            const stock = await StockModel.findByProductId(data.product_id);
+            if (!stock || stock.current_stock < data.quantity) {
                 throw new Error('库存不足');
             }
             
@@ -29,23 +30,14 @@ const InventoryService = {
             const record = await OutRecordModel.create(data);
             
             // 更新库存（减少库存）
-            await ProductModel.updateStock(data.product_id, -data.quantity);
+            await StockModel.updateStock(data.product_id, 0, data.quantity);
             
             return record;
         });
     },
 
     async getStockReport() {
-        return await dbUtils.query(`
-            SELECT p.*, 
-                   IFNULL(SUM(i.quantity), 0) as total_in,
-                   IFNULL(SUM(o.quantity), 0) as total_out
-            FROM products p
-            LEFT JOIN in_records i ON p.id = i.product_id
-            LEFT JOIN out_records o ON p.id = o.product_id
-            GROUP BY p.id
-            ORDER BY p.id DESC
-        `);
+        return await StockModel.findAll();
     },
 
     async getProductDetail(productId, month = null) {
@@ -60,12 +52,12 @@ const InventoryService = {
         const monthlyStats = await dbUtils.query(`
             SELECT 
                 DATE_FORMAT(recorded_date, '%Y-%m') as month,
-                SUM(CASE WHEN type IN ('purchase', 'return') THEN quantity ELSE 0 END) as in_quantity,
-                SUM(CASE WHEN type = 'sale' THEN quantity ELSE 0 END) as out_quantity
+                SUM(CASE WHEN table_type = 'in' THEN quantity ELSE 0 END) as in_quantity,
+                SUM(CASE WHEN table_type = 'out' THEN quantity ELSE 0 END) as out_quantity
             FROM (
-                SELECT product_id, type, quantity, recorded_date FROM in_records
+                SELECT 'in' as table_type, product_id, quantity, recorded_date FROM in_records
                 UNION ALL
-                SELECT product_id, type, quantity, recorded_date FROM out_records
+                SELECT 'out' as table_type, product_id, quantity, recorded_date FROM out_records
             ) as records
             WHERE product_id = ?
             GROUP BY DATE_FORMAT(recorded_date, '%Y-%m')

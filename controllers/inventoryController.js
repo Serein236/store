@@ -6,12 +6,13 @@ const OutRecordModel = require('../models/OutRecordModel');
 
 const inventoryController = {
     async inStock(req, res) {
-        const { product_id, type, quantity, remark, source, recorded_date } = req.body;
+        const { product_id, stock_method_name, quantity, unit_price, total_amount, source, remark, recorded_date } = req.body;
+        const created_by = req.session.userId; // 从会话中获取当前用户ID
         
         try {
             const formattedDate = formatDateForMySQL(recorded_date);
             await InventoryService.inStock({
-                product_id, type, quantity, remark, source, recorded_date: formattedDate
+                product_id, stock_method_name, quantity, unit_price, total_amount, source, remark, recorded_date: formattedDate, created_by
             });
             res.json({ success: true });
         } catch (error) {
@@ -24,12 +25,13 @@ const inventoryController = {
     },
 
     async outStock(req, res) {
-        const { product_id, type, quantity, remark, destination, recorded_date } = req.body;
+        const { product_id, stock_method_name, quantity, unit_price, total_amount, destination, remark, recorded_date } = req.body;
+        const created_by = req.session.userId; // 从会话中获取当前用户ID
         
         try {
             const formattedDate = formatDateForMySQL(recorded_date);
             await InventoryService.outStock({
-                product_id, type, quantity, remark, destination, recorded_date: formattedDate
+                product_id, stock_method_name, quantity, unit_price, total_amount, destination, remark, recorded_date: formattedDate, created_by
             });
             res.json({ success: true });
         } catch (error) {

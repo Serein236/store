@@ -12,7 +12,14 @@ const ProductModel = {
     },
 
     async findById(id) {
-        return await dbUtils.queryOne('SELECT * FROM products WHERE id = ?', [id]);
+        const result = await dbUtils.queryOne(`
+            SELECT p.*, s.warning_quantity, s.danger_quantity, s.current_stock as stock
+            FROM products p
+            LEFT JOIN stock_inventory s ON p.id = s.product_id
+            WHERE p.id = ?
+        `, [id]);
+        console.log('findById结果:', result);
+        return result;
     },
 
     async findByProductCode(productCode) {

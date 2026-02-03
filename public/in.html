@@ -81,64 +81,86 @@
             <p class="mb-0">办理商品入库，记录入库方式和来源</p>
         </div>
 
-        <!-- 入库表单卡片 -->
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-plus-circle me-2"></i>办理入库
+        <!-- 入库管理区域 -->
+        <div class="row g-4">
+            <!-- 左边：办理入库模块 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-plus-circle me-2"></i>办理入库
+                    </div>
+                    <div class="card-body">
+                        <form id="inForm">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="productId" class="form-label">选择商品 <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="productId" required>
+                                        <option value="">请选择商品</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="stock_method_name" class="form-label">入库方式 <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="stock_method_name" required>
+                                        <option value="采购入库">采购入库</option>
+                                        <option value="退货入库">退货入库</option>
+                                        <option value="调拨入库">调拨入库</option>
+                                        <option value="生产入库">生产入库</option>
+                                        <option value="其他入库">其他入库</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="quantity" class="form-label">入库数量 <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="quantity" min="1" required
+                                        placeholder="请输入入库数量">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="unit_price" class="form-label">入库单价 <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="unit_price" min="0" step="0.01" required
+                                        placeholder="请输入入库单价">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="total_amount" class="form-label">总金额 <span class="text-danger">*</span></label>
+                                    <input type="number" class="form-control" id="total_amount" min="0" step="0.01" required
+                                        placeholder="自动计算">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="recordedDate" class="form-label">入库日期 <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="recordedDate" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="source" class="form-label">来源</label>
+                                    <input type="text" class="form-control" id="source" placeholder="如供应商名称">
+                                </div>
+                                <div class="col-12">
+                                    <label for="remark" class="form-label">备注</label>
+                                    <textarea class="form-control" id="remark" rows="2" placeholder="可选填写"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-check-circle me-2"></i>提交入库
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <form id="inForm">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="productId" class="form-label">选择商品 <span class="text-danger">*</span></label>
-                            <select class="form-select" id="productId" required>
-                                <option value="">请选择商品</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="stock_method_name" class="form-label">入库方式 <span class="text-danger">*</span></label>
-                            <select class="form-select" id="stock_method_name" required>
-                                <option value="采购入库">采购入库</option>
-                                <option value="退货入库">退货入库</option>
-                                <option value="调拨入库">调拨入库</option>
-                                <option value="生产入库">生产入库</option>
-                                <option value="其他入库">其他入库</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="quantity" class="form-label">入库数量 <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="quantity" min="1" required
-                                placeholder="请输入入库数量">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="unit_price" class="form-label">入库单价 <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="unit_price" min="0" step="0.01" required
-                                placeholder="请输入入库单价">
-                        </div>
-                        <div class="col-md-4">
-                            <label for="total_amount" class="form-label">总金额 <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="total_amount" min="0" step="0.01" required
-                                placeholder="自动计算">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="recordedDate" class="form-label">入库日期 <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="recordedDate" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="source" class="form-label">来源</label>
-                            <input type="text" class="form-control" id="source" placeholder="如供应商名称">
-                        </div>
-                        <div class="col-12">
-                            <label for="remark" class="form-label">备注</label>
-                            <textarea class="form-control" id="remark" rows="2" placeholder="可选填写"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle me-2"></i>提交入库
-                            </button>
+
+            <!-- 右边：商品信息模块 -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2"></i>商品信息
+                    </div>
+                    <div class="card-body">
+                        <div id="productInfo" class="text-center py-4">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">加载中...</span>
+                            </div>
+                            <p class="mt-2">请选择商品以查看详细信息</p>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
 
@@ -156,6 +178,8 @@
                                 <th>商品名称</th>
                                 <th>入库方式</th>
                                 <th>数量</th>
+                                <th>单价</th>
+                                <th>总金额</th>
                                 <th>来源</th>
                                 <th>入库日期</th>
                                 <th>备注</th>

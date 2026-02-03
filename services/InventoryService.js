@@ -42,6 +42,7 @@ const InventoryService = {
 
     async getProductDetail(productId, month = null) {
         const product = await ProductModel.findById(productId);
+        console.log('ProductModel.findById返回结果:', product);
         if (!product) {
             throw new Error('商品不存在');
         }

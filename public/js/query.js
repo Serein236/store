@@ -75,23 +75,41 @@ async function checkLogin() {
             const product = data.product;
 
             document.getElementById('productInfo').innerHTML = `
-                <div class="col-md-3">
-                    <p><strong>商品名称:</strong> ${product.name}</p>
+                <div class="col-md-2">
+                    <p><strong>商品ID:</strong> ${product.id || '-'}</p>
+                </div>
+                <div class="col-md-2">
+                    <p><strong>商品编码:</strong> ${product.product_code || '-'}</p>
+                </div>
+                <div class="col-md-2">
+                    <p><strong>商品名称:</strong> ${product.name || '-'}</p>
                 </div>
                 <div class="col-md-2">
                     <p><strong>规格:</strong> ${product.spec || '-'}</p>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <p><strong>单位:</strong> ${product.unit || '-'}</p>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <p><strong>装箱规格:</strong> ${product.packing_spec || '-'}</p>
                 </div>
                 <div class="col-md-1">
                     <p><strong>零售价:</strong> ${product.retail_price ? '¥' + parseFloat(product.retail_price).toFixed(2) : '-'}</p>
                 </div>
                 <div class="col-md-2">
-                    <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock}</span></p>
+                    <p><strong>条形码:</strong> ${product.barcode || '-'}</p>
+                </div>
+                <div class="col-md-2">
+                    <p><strong>生产厂家:</strong> ${product.manufacturer || '-'}</p>
+                </div>
+                <div class="col-md-1">
+                    <p><strong>警告库存:</strong> ${product.warning_quantity || '-'}</p>
+                </div>
+                <div class="col-md-1">
+                    <p><strong>危险库存:</strong> ${product.danger_quantity || '-'}</p>
+                </div>
+                <div class="col-md-2">
+                    <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock || 0}</span></p>
                 </div>
             `;
 

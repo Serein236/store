@@ -102,9 +102,9 @@ async function checkLogin() {
             }
 
             stockData.forEach(item => {
-                const totalIn = item.total_in || 0;
-                const totalOut = item.total_out || 0;
-                const currentStock = item.stock || 0;
+                const totalIn = item.total_in_quantity || 0;
+                const totalOut = item.total_out_quantity || 0;
+                const currentStock = item.current_stock || 0;
                 const retailPrice = item.retail_price || 0;
                 const stockValue = retailPrice * currentStock;
                 totalValue += stockValue;

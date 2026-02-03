@@ -7,7 +7,7 @@ async function checkLogin() {
                     window.location.href = 'login.html';
                 } else {
                     document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
-                    loadProducts();
+                    await loadProducts();
                     loadOutRecords();
 
                     const today = new Date();
@@ -18,6 +18,8 @@ async function checkLogin() {
                     // 添加计算总金额的事件监听
                     document.getElementById('quantity').addEventListener('input', calculateTotal);
                     document.getElementById('unit_price').addEventListener('input', calculateTotal);
+                    // 初始化商品信息显示
+                    showProductInfo();
                 }
             } catch (error) {
                 console.error('检查登录状态失败:', error);
@@ -25,10 +27,12 @@ async function checkLogin() {
             }
         }
 
+        let products = [];
+
         async function loadProducts() {
             try {
                 const response = await fetch('/api/products');
-                const products = await response.json();
+                products = await response.json();
 
                 const select = document.getElementById('productId');
                 select.innerHTML = '<option value="">请选择商品</option>';
@@ -39,8 +43,78 @@ async function checkLogin() {
                     option.textContent = `${product.name} (库存: ${product.stock || 0})`;
                     select.appendChild(option);
                 });
+                // 添加商品选择事件监听
+                select.addEventListener('change', showProductInfo);
             } catch (error) {
                 console.error('加载商品失败:', error);
+            }
+        }
+
+        function showProductInfo() {
+            const productId = document.getElementById('productId').value;
+            const productInfoDiv = document.getElementById('productInfo');
+            
+            if (!productId) {
+                productInfoDiv.innerHTML = `
+                    <div class="text-center py-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">加载中...</span>
+                        </div>
+                        <p class="mt-2">请选择商品以查看详细信息</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const product = products.find(p => p.id == productId);
+            if (product) {
+                productInfoDiv.innerHTML = `
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <p><strong>商品ID:</strong> ${product.id || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>商品编码:</strong> ${product.product_code || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>商品名称:</strong> ${product.name || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>规格:</strong> ${product.spec || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>单位:</strong> ${product.unit || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>装箱规格:</strong> ${product.packing_spec || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>零售价:</strong> ${product.retail_price ? '¥' + parseFloat(product.retail_price).toFixed(2) : '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>条形码:</strong> ${product.barcode || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>生产厂家:</strong> ${product.manufacturer || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>警告库存:</strong> ${product.warning_quantity || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>危险库存:</strong> ${product.danger_quantity || '-'}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock || 0}</span></p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                productInfoDiv.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-exclamation-triangle text-warning fs-3"></i>
+                        <p class="mt-2">商品信息加载失败</p>
+                    </div>
+                `;
             }
         }
 
@@ -67,8 +141,8 @@ async function checkLogin() {
                     <td>${record.product_name}</td>
                     <td><span class="badge bg-warning">${record.stock_method_name}</span></td>
                     <td><span class="badge bg-danger">${record.quantity}</span></td>
-                    <td>¥${record.unit_price.toFixed(2)}</td>
-                    <td>¥${record.total_amount.toFixed(2)}</td>
+                    <td>¥${parseFloat(record.unit_price).toFixed(2)}</td>
+                    <td>¥${parseFloat(record.total_amount).toFixed(2)}</td>
                     <td>${record.destination || '-'}</td>
                     <td>${record.recorded_date}</td>
                     <td>${record.remark || '-'}</td>

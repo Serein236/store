@@ -1,6 +1,6 @@
 // controllers/inventoryController.js
 const InventoryService = require('../services/InventoryService');
-const { formatDateForMySQL } = require('../utils/dateUtils');
+const { formatDateForMySQL } = require('../utils/dataUtils');
 
 const inventoryController = {
     async inStock(req, res) {

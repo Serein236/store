@@ -30,6 +30,8 @@ const protectedPages = [
     '/products.html', 
     '/in.html', 
     '/out.html', 
+    '/in_records.html', 
+    '/out_records.html', 
     '/stock.html', 
     '/query.html'
 ];

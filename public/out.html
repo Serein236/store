@@ -48,8 +48,18 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="in_records.html">
+                            <i class="bi bi-box-arrow-down me-1"></i>入库记录
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link active" href="out.html">
                             <i class="bi bi-arrow-up-circle me-1"></i>出库管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="out_records.html">
+                            <i class="bi bi-box-arrow-up me-1"></i>出库记录
                         </a>
                     </li>
                     <li class="nav-item">
@@ -160,36 +170,6 @@
                             <p class="mt-2">请选择商品以查看详细信息</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 出库记录卡片 -->
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-list-check me-2"></i>出库记录
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>商品名称</th>
-                                <th>出库方式</th>
-                                <th>数量</th>
-                                <th>单价</th>
-                                <th>总金额</th>
-                                <th>去向</th>
-                                <th>出库日期</th>
-                                <th>备注</th>
-                                <th>操作时间</th>
-                            </tr>
-                        </thead>
-                        <tbody id="outRecordsTable">
-                            <!-- 动态加载 -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>

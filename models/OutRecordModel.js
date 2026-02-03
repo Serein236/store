@@ -11,15 +11,34 @@ const OutRecordModel = {
         return { id: result.insertId, ...recordData };
     },
 
-    async findAll() {
+    async findAll(month = null, productId = null) {
+        let whereCondition = '';
+        const params = [];
+        
+        if (productId) {
+            whereCondition += 'WHERE o.product_id = ?';
+            params.push(productId);
+        }
+        
+        if (month) {
+            if (whereCondition) {
+                whereCondition += ' AND ';
+            } else {
+                whereCondition += 'WHERE ';
+            }
+            whereCondition += 'DATE_FORMAT(o.recorded_date, "%Y-%m") = ?';
+            params.push(month);
+        }
+        
         return await dbUtils.query(`
             SELECT o.*, 
                    DATE_FORMAT(o.recorded_date, '%Y-%m-%d') as display_date,
                    p.name as product_name 
             FROM out_records o 
             JOIN products p ON o.product_id = p.id 
+            ${whereCondition}
             ORDER BY o.recorded_date DESC, o.created_at DESC
-        `);
+        `, params);
     },
 
     async findByProductId(productId, month = null) {

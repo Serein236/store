@@ -46,7 +46,8 @@ const inventoryController = {
 
     async getInRecords(req, res) {
         try {
-            const inRecords = await InRecordModel.findAll();
+            const { month, product_id } = req.query;
+            const inRecords = await InRecordModel.findAll(month, product_id);
             const formattedRows = inRecords.map(row => ({
                 ...row,
                 recorded_date: row.display_date
@@ -60,7 +61,8 @@ const inventoryController = {
 
     async getOutRecords(req, res) {
         try {
-            const outRecords = await OutRecordModel.findAll();
+            const { month, product_id } = req.query;
+            const outRecords = await OutRecordModel.findAll(month, product_id);
             const formattedRows = outRecords.map(row => ({
                 ...row,
                 recorded_date: row.display_date

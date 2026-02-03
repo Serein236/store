@@ -3,22 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>库存查看 - 仓库管理系统</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    <!-- 公共样式 -->
-    <link href="css/common.css" rel="stylesheet">
+    <title>入库记录 - 仓库管理系统</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="css/common.css">
     <style>
-        /* 库存查看专属样式 */
-        #loadingRow {
-            height: 200px;
-        }
-        
-        .spinner-border {
-            width: 3rem;
-            height: 3rem;
+        .btn-action {
+            margin-right: 5px;
         }
     </style>
 </head>
@@ -68,7 +59,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="stock.html">
+                        <a class="nav-link" href="stock.html">
                             <i class="bi bi-clipboard-data me-1"></i>库存查看
                         </a>
                     </li>
@@ -92,66 +83,52 @@
     <!-- 主内容区 -->
     <div class="container-fluid main-content">
         <div class="page-header">
-            <h2 class="mb-1"><i class="bi bi-clipboard-data me-2"></i>库存查看</h2>
-            <p class="mb-0">查看所有商品的库存情况，实时掌握库存动态</p>
+            <h2 class="mb-1"><i class="bi bi-dolly-flatbed me-2"></i>入库记录</h2>
+            <p class="mb-0">查看所有入库记录</p>
         </div>
-
+        
+        <!-- 入库记录表格 -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <div>
-                    <i class="bi bi-table me-2"></i>库存列表
-                </div>
-                <div>
-                    <button class="btn btn-primary btn-sm me-2" onclick="refreshStock()">
-                        <i class="bi bi-arrow-clockwise me-1"></i>刷新
-                    </button>
-                    <button class="btn btn-success btn-sm" onclick="exportToExcel()">
-                        <i class="bi bi-file-earmark-excel me-1"></i>导出Excel
-                    </button>
-                </div>
+                <div>入库记录列表</div>
+                <div id="recordCount" class="text-muted"></div>
             </div>
             <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
+                <div id="loading" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2">正在加载入库记录...</p>
+                </div>
+                <div id="error" class="alert alert-danger d-none"></div>
+                <div id="emptyState" class="text-center py-4 d-none">
+                    <i class="bi bi-box-open text-muted fs-3"></i>
+                    <p class="mt-2 text-muted">暂无入库记录</p>
+                </div>
+                <div id="recordsTable" class="overflow-x-auto">
+                    <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>商品ID</th>
+                                <th>ID</th>
                                 <th>商品名称</th>
-                                <th>规格</th>
-                                <th>单位</th>
-                                <th>总入库</th>
-                                <th>总出库</th>
-                                <th>现有库存</th>
-                                <th>零售价</th>
-                                <th>库存价值</th>
+                                <th>入库方式</th>
+                                <th>数量</th>
+                                <th>单价</th>
+                                <th>总金额</th>
+                                <th>来源</th>
+                                <th>入库日期</th>
+                                <th>备注</th>
+                                <th>操作时间</th>
                             </tr>
                         </thead>
-                        <tbody id="stockTable">
-                            <tr id="loadingRow">
-                                <td colspan="9" class="text-center">
-                                    <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                        <span class="visually-hidden">加载中...</span>
-                                    </div>
-                                    正在加载库存数据...
-                                </td>
-                            </tr>
+                        <tbody id="inRecordsBody">
+                            <!-- 入库记录将在这里动态生成 -->
                         </tbody>
-                        <tfoot>
-                            <tr class="table-light">
-                                <td colspan="8" class="text-end fw-bold">总计:</td>
-                                <td id="totalValue" class="fw-bold text-success">¥0.00</td>
-                            </tr>
-                        </tfoot>
                     </table>
-                </div>
-                <div id="noDataMessage" class="alert alert-warning text-center" style="display: none;">
-                    <i class="bi bi-exclamation-triangle me-2"></i>暂无库存数据，请先添加商品
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Footer -->
     <footer>
         <div class="container">
             &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"
@@ -159,10 +136,8 @@
         </div>
     </footer>
 
-    <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-
-    <script src="js/stock.js"></script>
+    <script src="js/records_common.js"></script>
+    <script src="js/in_records.js"></script>
 </body>
-
 </html>

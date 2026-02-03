@@ -8,7 +8,6 @@ async function checkLogin() {
                 } else {
                     document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
                     await loadProducts();
-                    loadOutRecords();
 
                     const today = new Date();
                     const year = today.getFullYear();
@@ -118,40 +117,6 @@ async function checkLogin() {
             }
         }
 
-        async function loadOutRecords() {
-            try {
-                const response = await fetch('/api/out-records');
-                const records = await response.json();
-                renderOutRecords(records);
-            } catch (error) {
-                console.error('加载出库记录失败:', error);
-            }
-        }
-
-        function renderOutRecords(records) {
-            const tbody = document.getElementById('outRecordsTable');
-            tbody.innerHTML = '';
-
-            records.forEach(record => {
-                const row = document.createElement('tr');
-                const createdAt = new Date(record.created_at).toLocaleString('zh-CN');
-
-                row.innerHTML = `
-                    <td>${record.id}</td>
-                    <td>${record.product_name}</td>
-                    <td><span class="badge bg-warning">${record.stock_method_name}</span></td>
-                    <td><span class="badge bg-danger">${record.quantity}</span></td>
-                    <td>¥${parseFloat(record.unit_price).toFixed(2)}</td>
-                    <td>¥${parseFloat(record.total_amount).toFixed(2)}</td>
-                    <td>${record.destination || '-'}</td>
-                    <td>${record.recorded_date}</td>
-                    <td>${record.remark || '-'}</td>
-                    <td><small class="text-muted">${createdAt}</small></td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
         function calculateTotal() {
             const quantity = parseFloat(document.getElementById('quantity').value) || 0;
             const unitPrice = parseFloat(document.getElementById('unit_price').value) || 0;
@@ -194,7 +159,6 @@ async function checkLogin() {
                     document.getElementById('recordedDate').value = `${year}-${month}-${day}`;
 
                     loadProducts();
-                    loadOutRecords();
                 } else {
                     alert('出库失败: ' + data.message);
                 }

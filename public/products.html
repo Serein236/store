@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商品管理 - 仓库管理系统</title>
+    <title>添加商品 - 仓库管理系统</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
@@ -39,7 +39,12 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" href="products.html">
-                            <i class="bi bi-box-seam me-1"></i>商品管理
+                            <i class="bi bi-plus-circle me-1"></i>添加商品
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="product_list.html">
+                            <i class="bi bi-list-check me-1"></i>商品列表
                         </a>
                     </li>
                     <li class="nav-item">
@@ -82,8 +87,8 @@
     <!-- 主内容区 -->
     <div class="container-fluid main-content">
         <div class="page-header">
-            <h2 class="mb-1"><i class="bi bi-box-seam me-2"></i>商品管理</h2>
-            <p class="mb-0">添加、编辑、删除商品信息，管理商品规格</p>
+            <h2 class="mb-1"><i class="bi bi-plus-circle me-2"></i>添加商品</h2>
+            <p class="mb-0">添加新商品信息，设置商品规格和库存预警</p>
         </div>
 
         <!-- 添加商品表单卡片 -->
@@ -138,168 +143,6 @@
                         </div>
                     </div>
                 </form>
-            </div>
-        </div>
-
-        <!-- 商品列表卡片 -->
-        <div class="card">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-list-check me-2"></i>商品列表
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>序号</th>
-                                <th>商品编码</th>
-                                <th>品名</th>
-                                <th>产品规格</th>
-                                <th>装箱规格</th>
-                                <th>单位</th>
-                                <th>零售价</th>
-                                <th>生产厂家</th>
-                                <th>库存</th>
-                                <th>操作</th>
-                            </tr>
-                        </thead>
-                        <tbody id="productsTable">
-                            <!-- 动态加载 -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 编辑商品模态框 -->
-    <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>编辑商品</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="editProductForm">
-                        <input type="hidden" id="editProductId">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">商品编码 <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="editProductCode" required disabled>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">商品名称 <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="editProductName" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">产品规格</label>
-                                    <input type="text" class="form-control" id="editProductSpec">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">装箱规格</label>
-                                    <input type="text" class="form-control" id="editPackingSpec">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">单位</label>
-                                    <input type="text" class="form-control" id="editUnit">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">零售价</label>
-                                    <input type="number" step="0.01" class="form-control" id="editRetailPrice">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">条形码</label>
-                                    <input type="text" class="form-control" id="editBarcode">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">生产厂家</label>
-                                    <input type="text" class="form-control" id="editManufacturer">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">警告库存</label>
-                                    <input type="number" class="form-control" id="editWarningQuantity">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">危险库存</label>
-                                    <input type="number" class="form-control" id="editDangerQuantity">
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="updateProduct()">
-                        <i class="bi bi-check-circle me-1"></i>保存
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 查看商品详情模态框 -->
-    <div class="modal fade" id="detailModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>商品详情</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">商品编码</label>
-                                <p class="form-control-plaintext" id="detailProductCode"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">商品名称</label>
-                                <p class="form-control-plaintext" id="detailProductName"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">产品规格</label>
-                                <p class="form-control-plaintext" id="detailProductSpec"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">装箱规格</label>
-                                <p class="form-control-plaintext" id="detailPackingSpec"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">单位</label>
-                                <p class="form-control-plaintext" id="detailUnit"></p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label class="form-label">零售价</label>
-                                <p class="form-control-plaintext" id="detailRetailPrice"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">条形码</label>
-                                <p class="form-control-plaintext" id="detailBarcode"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">生产厂家</label>
-                                <p class="form-control-plaintext" id="detailManufacturer"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">警告库存</label>
-                                <p class="form-control-plaintext" id="detailWarningQuantity"></p>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">危险库存</label>
-                                <p class="form-control-plaintext" id="detailDangerQuantity"></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">关闭</button>
-                </div>
             </div>
         </div>
     </div>

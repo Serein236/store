@@ -28,6 +28,7 @@ app.use('/api', requireLogin, inventoryRoutes);
 const protectedPages = [
     '/index.html', 
     '/products.html', 
+    '/product_list.html',
     '/in.html', 
     '/out.html', 
     '/in_records.html', 

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品列表 - 仓库管理系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- 公共样式 -->
+    <link href="css/common.css" rel="stylesheet">
+    <style>
+        /* 商品列表专属样式 */
+        .btn-action {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-warehouse me-2"></i>仓库管理系统
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="bi bi-house-door me-1"></i>首页
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="products.html">
+                            <i class="bi bi-plus-circle me-1"></i>添加商品
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="product_list.html">
+                            <i class="bi bi-list-check me-1"></i>商品列表
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="in.html">
+                            <i class="bi bi-arrow-down-circle me-1"></i>入库管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="in_records.html">
+                            <i class="bi bi-box-arrow-down me-1"></i>入库记录
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="out.html">
+                            <i class="bi bi-arrow-up-circle me-1"></i>出库管理
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="out_records.html">
+                            <i class="bi bi-box-arrow-up me-1"></i>出库记录
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="query.html">
+                            <i class="bi bi-search me-1"></i>库存查询
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center text-white">
+                    <span id="currentUser" class="me-3"></span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">
+                        <i class="bi bi-box-arrow-right me-1"></i>退出登录
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container-fluid main-content">
+        <div class="page-header">
+            <h2 class="mb-1"><i class="bi bi-list-check me-2"></i>商品列表</h2>
+            <p class="mb-0">查看、编辑、删除商品信息，管理商品库存</p>
+        </div>
+
+        <!-- 商品列表卡片 -->
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <i class="bi bi-list-check me-2"></i>商品列表
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>商品编码</th>
+                                <th>品名</th>
+                                <th>产品规格</th>
+                                <th>装箱规格</th>
+                                <th>单位</th>
+                                <th>零售价</th>
+                                <th>生产厂家</th>
+                                <th>库存</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTable">
+                            <!-- 动态加载 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑商品模态框 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>编辑商品</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editProductForm">
+                        <input type="hidden" id="editProductId">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">商品编码 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editProductCode" required disabled>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">商品名称 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="editProductName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">产品规格</label>
+                                    <input type="text" class="form-control" id="editProductSpec">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">装箱规格</label>
+                                    <input type="text" class="form-control" id="editPackingSpec">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">单位</label>
+                                    <input type="text" class="form-control" id="editUnit">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">零售价</label>
+                                    <input type="number" step="0.01" class="form-control" id="editRetailPrice">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">条形码</label>
+                                    <input type="text" class="form-control" id="editBarcode">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">生产厂家</label>
+                                    <input type="text" class="form-control" id="editManufacturer">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">警告库存</label>
+                                    <input type="number" class="form-control" id="editWarningQuantity">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">危险库存</label>
+                                    <input type="number" class="form-control" id="editDangerQuantity">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="updateProduct()">
+                        <i class="bi bi-check-circle me-1"></i>保存
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看商品详情模态框 -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-info-circle me-2"></i>商品详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">商品编码</label>
+                                <p class="form-control-plaintext" id="detailProductCode"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">商品名称</label>
+                                <p class="form-control-plaintext" id="detailProductName"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">产品规格</label>
+                                <p class="form-control-plaintext" id="detailProductSpec"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">装箱规格</label>
+                                <p class="form-control-plaintext" id="detailPackingSpec"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">单位</label>
+                                <p class="form-control-plaintext" id="detailUnit"></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">零售价</label>
+                                <p class="form-control-plaintext" id="detailRetailPrice"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">条形码</label>
+                                <p class="form-control-plaintext" id="detailBarcode"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">生产厂家</label>
+                                <p class="form-control-plaintext" id="detailManufacturer"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">警告库存</label>
+                                <p class="form-control-plaintext" id="detailWarningQuantity"></p>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">危险库存</label>
+                                <p class="form-control-plaintext" id="detailDangerQuantity"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"
+                class="text-decoration-none text-reset">鄂ICP备2025167566号</a>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script src="js/product_list.js"></script>
+</body>
+
+</html>

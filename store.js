@@ -8,6 +8,7 @@ const { requireLogin, checkLoggedIn } = require('./middleware/auth');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
+const logger = require('./utils/logger');
 
 const app = express();
 const port = 3000;
@@ -55,4 +56,5 @@ app.get('/', (req, res) => {
 // 启动服务器
 app.listen(port, () => {
     console.log(`仓库管理系统运行在 http://localhost:${port}`);
+    logger.info('仓库管理系统启动', { port, timestamp: new Date().toISOString() });
 });

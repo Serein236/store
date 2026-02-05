@@ -74,6 +74,7 @@ web_modules/
 db.js
 !db.example.js
 config/database.js
+config/databases.js
 !config/databases.example.js
 
 # parcel-bundler cache (https://parceljs.org/)

@@ -37,7 +37,7 @@ async function checkLogin() {
                 products.forEach(product => {
                     const option = document.createElement('option');
                     option.value = product.id;
-                    option.textContent = `${product.name} (当前库存: ${product.stock})`;
+                    option.textContent = `${product.product_code} - ${product.name} (当前库存: ${product.stock})`;
                     select.appendChild(option);
                 });
             } catch (error) {

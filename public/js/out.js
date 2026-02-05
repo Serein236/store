@@ -8,6 +8,7 @@ async function checkLogin() {
                 } else {
                     document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
                     await loadProducts();
+                    await loadStockMethods('out');
 
                     const today = new Date();
                     const year = today.getFullYear();
@@ -23,6 +24,23 @@ async function checkLogin() {
             } catch (error) {
                 console.error('检查登录状态失败:', error);
                 window.location.href = 'login.html';
+            }
+        }
+
+        async function loadStockMethods(type) {
+            try {
+                const response = await fetch(`/api/stock-methods?type=${type}`);
+                const methods = await response.json();
+                const select = document.getElementById('stock_method_name');
+                select.innerHTML = '<option value="">请选择出入库方式</option>';
+                methods.forEach(method => {
+                    const option = document.createElement('option');
+                    option.value = method;
+                    option.textContent = method;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载出入库方式失败:', error);
             }
         }
 
@@ -43,9 +61,35 @@ async function checkLogin() {
                     select.appendChild(option);
                 });
                 // 添加商品选择事件监听
-                select.addEventListener('change', showProductInfo);
+                select.addEventListener('change', async function() {
+                    showProductInfo();
+                    await loadProductBatches(this.value);
+                });
             } catch (error) {
                 console.error('加载商品失败:', error);
+            }
+        }
+
+        async function loadProductBatches(productId) {
+            try {
+                const select = document.getElementById('batch_number');
+                select.innerHTML = '<option value="">请选择产品批号</option>';
+
+                if (!productId) {
+                    return;
+                }
+
+                const response = await fetch(`/api/product-batches/${productId}`);
+                const batches = await response.json();
+
+                batches.forEach(batch => {
+                    const option = document.createElement('option');
+                    option.value = batch.batch_number;
+                    option.textContent = `${batch.batch_number} (库存: ${batch.current_stock})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载商品批次失败:', error);
             }
         }
 
@@ -67,6 +111,15 @@ async function checkLogin() {
             
             const product = products.find(p => p.id == productId);
             if (product) {
+                let stockBadgeClass = 'bg-success';
+                if (product.stock <= 0) {
+                    stockBadgeClass = 'bg-danger';
+                } else if (product.danger_quantity && product.stock <= product.danger_quantity) {
+                    stockBadgeClass = 'bg-danger';
+                } else if (product.warning_quantity && product.stock <= product.warning_quantity) {
+                    stockBadgeClass = 'bg-warning';
+                }
+
                 productInfoDiv.innerHTML = `
                     <div class="row g-3">
                         <div class="col-md-6">
@@ -103,7 +156,7 @@ async function checkLogin() {
                             <p><strong>危险库存:</strong> ${product.danger_quantity || '-'}</p>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock || 0}</span></p>
+                            <p><strong>当前库存:</strong> <span class="badge ${stockBadgeClass}">${product.stock || 0}</span></p>
                         </div>
                     </div>
                 `;
@@ -130,6 +183,7 @@ async function checkLogin() {
             const outData = {
                 product_id: document.getElementById('productId').value,
                 stock_method_name: document.getElementById('stock_method_name').value,
+                batch_number: document.getElementById('batch_number').value,
                 quantity: parseInt(document.getElementById('quantity').value),
                 unit_price: parseFloat(document.getElementById('unit_price').value),
                 total_amount: parseFloat(document.getElementById('total_amount').value),

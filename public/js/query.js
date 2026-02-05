@@ -1,3 +1,14 @@
+// 格式化时间戳为日期
+function formatDate(timestamp) {
+    if (!timestamp) return '-';
+    // 如果已经是日期格式（不含时间），直接返回
+    if (timestamp.length === 10 && timestamp.includes('-')) {
+        return timestamp;
+    }
+    const date = new Date(timestamp);
+    return date.toISOString().split('T')[0];
+}
+
 async function checkLogin() {
             try {
                 const response = await fetch('/api/auth/current-user');
@@ -74,7 +85,16 @@ async function checkLogin() {
         function renderQueryResult(data) {
             const product = data.product;
 
-            document.getElementById('productInfo').innerHTML = `
+            let stockBadgeClass = 'bg-success';
+                if (product.stock <= 0) {
+                    stockBadgeClass = 'bg-danger';
+                } else if (product.danger_quantity && product.stock <= product.danger_quantity) {
+                    stockBadgeClass = 'bg-danger';
+                } else if (product.warning_quantity && product.stock <= product.warning_quantity) {
+                    stockBadgeClass = 'bg-warning';
+                }
+
+                document.getElementById('productInfo').innerHTML = `
                 <div class="col-md-2">
                     <p><strong>商品ID:</strong> ${product.id || '-'}</p>
                 </div>
@@ -109,9 +129,9 @@ async function checkLogin() {
                     <p><strong>危险库存:</strong> ${product.danger_quantity || '-'}</p>
                 </div>
                 <div class="col-md-2">
-                    <p><strong>当前库存:</strong> <span class="badge ${product.stock < 10 ? 'bg-danger' : 'bg-success'}">${product.stock || 0}</span></p>
+                    <p><strong>当前库存:</strong> <span class="badge ${stockBadgeClass}">${product.stock || 0}</span></p>
                 </div>
-            `;
+            `
 
             const monthlyStatsTable = document.getElementById('monthlyStatsTable');
             monthlyStatsTable.innerHTML = '';
@@ -140,6 +160,41 @@ async function checkLogin() {
                 `;
             }
 
+            // 渲染批次库存信息
+            const batchStockTable = document.getElementById('batchStockTable');
+            batchStockTable.innerHTML = '';
+
+            if (data.batchStock && data.batchStock.length > 0) {
+                data.batchStock.forEach(batch => {
+                    let stockBadgeClass = 'bg-success';
+                    if (batch.current_stock <= 0) {
+                        stockBadgeClass = 'bg-danger';
+                    } else if (product.danger_quantity && batch.current_stock <= product.danger_quantity) {
+                        stockBadgeClass = 'bg-danger';
+                    } else if (product.warning_quantity && batch.current_stock <= product.warning_quantity) {
+                        stockBadgeClass = 'bg-warning';
+                    }
+
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${batch.batch_number || '-'}</td>
+                        <td>${formatDate(batch.production_date)}</td>
+                        <td>${formatDate(batch.expiration_date)}</td>
+                        <td><span class="badge ${stockBadgeClass}">${batch.current_stock || 0}</span></td>
+                        <td>${product.unit || '-'}</td>
+                    `;
+                    batchStockTable.appendChild(row);
+                });
+            } else {
+                batchStockTable.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            <i class="bi bi-clipboard-data me-2"></i>暂无批次库存数据
+                        </td>
+                    </tr>
+                `;
+            }
+
             const inDetailsTable = document.getElementById('inDetailsTable');
             inDetailsTable.innerHTML = '';
 
@@ -149,6 +204,9 @@ async function checkLogin() {
                     row.innerHTML = `
                         <td>${record.recorded_date}</td>
                         <td><span class="badge bg-primary">${record.stock_method_name || '-'}</span></td>
+                        <td>${record.batch_number || '-'}</td>
+                        <td>${formatDate(record.production_date)}</td>
+                        <td>${formatDate(record.expiration_date)}</td>
                         <td><span class="badge bg-success">${record.quantity}</span></td>
                         <td>¥${parseFloat(record.unit_price || 0).toFixed(2)}</td>
                         <td>¥${parseFloat(record.total_amount || 0).toFixed(2)}</td>
@@ -160,7 +218,7 @@ async function checkLogin() {
             } else {
                 inDetailsTable.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">
+                        <td colspan="10" class="text-center text-muted">
                             <i class="bi bi-arrow-down-circle me-2"></i>暂无入库记录
                         </td>
                     </tr>
@@ -176,6 +234,9 @@ async function checkLogin() {
                     row.innerHTML = `
                         <td>${record.recorded_date}</td>
                         <td><span class="badge bg-warning">${record.stock_method_name || '-'}</span></td>
+                        <td>${record.batch_number || '-'}</td>
+                        <td>${formatDate(record.production_date)}</td>
+                        <td>${formatDate(record.expiration_date)}</td>
                         <td><span class="badge bg-danger">${record.quantity}</span></td>
                         <td>¥${parseFloat(record.unit_price || 0).toFixed(2)}</td>
                         <td>¥${parseFloat(record.total_amount || 0).toFixed(2)}</td>
@@ -187,7 +248,7 @@ async function checkLogin() {
             } else {
                 outDetailsTable.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center text-muted">
+                        <td colspan="10" class="text-center text-muted">
                             <i class="bi bi-arrow-up-circle me-2"></i>暂无出库记录
                         </td>
                     </tr>

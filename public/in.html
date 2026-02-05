@@ -123,6 +123,18 @@
                                         <option value="其他入库">其他入库</option>
                                     </select>
                                 </div>
+                                <div class="col-md-12">
+                                    <label for="batch_number" class="form-label">产品批号 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="batch_number" required placeholder="请输入产品批号">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="production_date" class="form-label">生产日期 <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="production_date" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="expiration_date" class="form-label">过期日期 <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="expiration_date" required>
+                                </div>
                                 <div class="col-md-4">
                                     <label for="quantity" class="form-label">入库数量 <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="quantity" min="1" required
@@ -136,7 +148,7 @@
                                 <div class="col-md-4">
                                     <label for="total_amount" class="form-label">总金额 <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="total_amount" min="0" step="0.01" required
-                                        placeholder="自动计算">
+                                        placeholder="自动计算" readonly>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="recordedDate" class="form-label">入库日期 <span class="text-danger">*</span></label>

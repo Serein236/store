@@ -7,11 +7,16 @@ async function checkLogin() {
                 } else {
                     document.getElementById('currentUser').textContent = `欢迎, ${data.username}`;
                     await loadProducts();
+                    await loadStockMethods('in');
                     const today = new Date();
                     const year = today.getFullYear();
                     const month = String(today.getMonth() + 1).padStart(2, '0');
                     const day = String(today.getDate()).padStart(2, '0');
                     document.getElementById('recordedDate').value = `${year}-${month}-${day}`;
+                    document.getElementById('production_date').value = `${year}-${month}-${day}`;
+                    // 设置过期日期为当前日期加1年
+                    const expireYear = year + 1;
+                    document.getElementById('expiration_date').value = `${expireYear}-${month}-${day}`;
                     // 添加计算总金额的事件监听
                     document.getElementById('quantity').addEventListener('input', calculateTotal);
                     document.getElementById('unit_price').addEventListener('input', calculateTotal);
@@ -21,6 +26,23 @@ async function checkLogin() {
             } catch (error) {
                 console.error('检查登录状态失败:', error);
                 window.location.href = 'login.html';
+            }
+        }
+
+        async function loadStockMethods(type) {
+            try {
+                const response = await fetch(`/api/stock-methods?type=${type}`);
+                const methods = await response.json();
+                const select = document.getElementById('stock_method_name');
+                select.innerHTML = '<option value="">请选择出入库方式</option>';
+                methods.forEach(method => {
+                    const option = document.createElement('option');
+                    option.value = method;
+                    option.textContent = method;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载出入库方式失败:', error);
             }
         }
 
@@ -125,6 +147,9 @@ async function checkLogin() {
             const inData = {
                 product_id: document.getElementById('productId').value,
                 stock_method_name: document.getElementById('stock_method_name').value,
+                batch_number: document.getElementById('batch_number').value,
+                production_date: document.getElementById('production_date').value,
+                expiration_date: document.getElementById('expiration_date').value,
                 quantity: parseInt(document.getElementById('quantity').value),
                 unit_price: parseFloat(document.getElementById('unit_price').value),
                 total_amount: parseFloat(document.getElementById('total_amount').value),
@@ -147,6 +172,10 @@ async function checkLogin() {
                     const month = String(today.getMonth() + 1).padStart(2, '0');
                     const day = String(today.getDate()).padStart(2, '0');
                     document.getElementById('recordedDate').value = `${year}-${month}-${day}`;
+                    document.getElementById('production_date').value = `${year}-${month}-${day}`;
+                    // 设置过期日期为当前日期加1年
+                    const expireYear = year + 1;
+                    document.getElementById('expiration_date').value = `${expireYear}-${month}-${day}`;
                     loadProducts();
                 } else {
                     alert('入库失败: ' + data.message);

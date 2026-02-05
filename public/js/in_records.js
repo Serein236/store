@@ -1,3 +1,14 @@
+// 格式化时间戳为日期
+function formatDate(timestamp) {
+    if (!timestamp) return '-';
+    // 如果已经是日期格式（不含时间），直接返回
+    if (timestamp.length === 10 && timestamp.includes('-')) {
+        return timestamp;
+    }
+    const date = new Date(timestamp);
+    return date.toISOString().split('T')[0];
+}
+
 // 加载入库记录
 async function loadInRecords() {
     const loadingDiv = document.getElementById('loading');
@@ -42,13 +53,16 @@ async function loadInRecords() {
                 <td>${record.id}</td>
                 <td>${record.product_name}</td>
                 <td>${record.stock_method_name || '-'}</td>
+                <td>${record.batch_number || '-'}</td>
+                <td>${formatDate(record.production_date)}</td>
+                <td>${formatDate(record.expiration_date)}</td>
                 <td>${record.quantity}</td>
                 <td>¥${parseFloat(record.unit_price).toFixed(2)}</td>
                 <td>¥${parseFloat(record.total_amount).toFixed(2)}</td>
                 <td>${record.source || '-'}</td>
                 <td>${record.display_date || '-'}</td>
                 <td>${record.remark || '-'}</td>
-                <td>${record.display_date || '-'}</td>
+                <td>${formatDate(record.created_at)}</td>
             `;
             recordsBody.appendChild(row);
         });

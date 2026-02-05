@@ -1,6 +1,6 @@
 /*
- 仓库管理系统数据库
- 版本: v2.2
+ 仓库管理系统数据库 - 批次管理版本
+ 版本: v3.1
  日期: 2026-01-23
 */
 
@@ -64,11 +64,14 @@ DROP TABLE IF EXISTS `in_records`;
 CREATE TABLE `in_records`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `product_id` int NOT NULL,
+  `batch_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '产品批号',
+  `production_date` date NOT NULL COMMENT '生产日期',
+  `expiration_date` date NOT NULL COMMENT '过期日期',
   `stock_method_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '入库方式名称',
   `quantity` int NOT NULL COMMENT '入库数量',
   `unit_price` decimal(12, 2) NOT NULL DEFAULT 0.00 COMMENT '入库单价',
   `total_amount` decimal(12, 2) NOT NULL DEFAULT 0.00 COMMENT '总金额',
-  `source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '货物来源（如供应商）',
+  `source` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '货物来源',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
   `recorded_date` date NOT NULL COMMENT '入库日期',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -77,6 +80,8 @@ CREATE TABLE `in_records`  (
   INDEX `idx_product_id`(`product_id` ASC) USING BTREE,
   INDEX `idx_recorded_date`(`recorded_date` ASC) USING BTREE,
   INDEX `idx_stock_method_name`(`stock_method_name` ASC) USING BTREE,
+  INDEX `idx_batch_number`(`batch_number` ASC) USING BTREE,
+  INDEX `idx_expiration_date`(`expiration_date` ASC) USING BTREE,
   CONSTRAINT `fk_in_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `fk_in_stock_method_name` FOREIGN KEY (`stock_method_name`) REFERENCES `stock_methods` (`method_name`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
@@ -88,11 +93,12 @@ DROP TABLE IF EXISTS `out_records`;
 CREATE TABLE `out_records`  (
   `id` int NOT NULL AUTO_INCREMENT,
   `product_id` int NOT NULL,
+  `batch_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '产品批号',
   `stock_method_name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '出库方式名称',
   `quantity` int NOT NULL COMMENT '出库数量',
   `unit_price` decimal(12, 2) NOT NULL DEFAULT 0.00 COMMENT '出库单价',
   `total_amount` decimal(12, 2) NOT NULL DEFAULT 0.00 COMMENT '总金额',
-  `destination` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '货物去向（如客户/门店）',
+  `destination` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '货物去向',
   `remark` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '备注',
   `recorded_date` date NOT NULL COMMENT '出库日期',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -101,12 +107,38 @@ CREATE TABLE `out_records`  (
   INDEX `idx_product_id`(`product_id` ASC) USING BTREE,
   INDEX `idx_recorded_date`(`recorded_date` ASC) USING BTREE,
   INDEX `idx_stock_method_name`(`stock_method_name` ASC) USING BTREE,
+  INDEX `idx_batch_number`(`batch_number` ASC) USING BTREE,
   CONSTRAINT `fk_out_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT,
   CONSTRAINT `fk_out_stock_method_name` FOREIGN KEY (`stock_method_name`) REFERENCES `stock_methods` (`method_name`) ON DELETE RESTRICT ON UPDATE RESTRICT
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- 5. 库存表
+-- 5. 批次库存表
+-- ----------------------------
+DROP TABLE IF EXISTS `batch_stock`;
+CREATE TABLE `batch_stock`  (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `product_id` int NOT NULL COMMENT '商品ID',
+  `batch_number` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '产品批号',
+  `production_date` date NOT NULL COMMENT '生产日期',
+  `expiration_date` date NOT NULL COMMENT '过期日期',
+  `batch_in_quantity` int NOT NULL DEFAULT 0 COMMENT '本批次入库数量',
+  `batch_out_quantity` int NOT NULL DEFAULT 0 COMMENT '本批次出库数量',
+  `batch_current_stock` int NOT NULL DEFAULT 0 COMMENT '本批次当前库存',
+  `batch_status` enum('normal','warning','danger','expired','out_of_stock') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal' COMMENT '批次库存状态',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_product_batch`(`product_id` ASC, `batch_number` ASC) USING BTREE,
+  INDEX `idx_product_id`(`product_id` ASC) USING BTREE,
+  INDEX `idx_batch_number`(`batch_number` ASC) USING BTREE,
+  INDEX `idx_expiration_date`(`expiration_date` ASC) USING BTREE,
+  INDEX `idx_batch_status`(`batch_status` ASC) USING BTREE,
+  CONSTRAINT `fk_batch_stock_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- 6. 总库存表
 -- ----------------------------
 DROP TABLE IF EXISTS `stock_inventory`;
 CREATE TABLE `stock_inventory`  (
@@ -114,10 +146,10 @@ CREATE TABLE `stock_inventory`  (
   `product_id` int NOT NULL,
   `total_in_quantity` int NOT NULL DEFAULT 0 COMMENT '总入库数量',
   `total_out_quantity` int NOT NULL DEFAULT 0 COMMENT '总出库数量',
-  `current_stock` int NOT NULL DEFAULT 0 COMMENT '当前库存',
+  `current_stock` int NOT NULL DEFAULT 0 COMMENT '当前总库存',
   `warning_quantity` int NULL DEFAULT 10 COMMENT '警告库存数量',
   `danger_quantity` int NULL DEFAULT 5 COMMENT '危险库存数量',
-  `stock_status` enum('normal','warning','danger','out_of_stock') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal' COMMENT '库存状态',
+  `stock_status` enum('normal','warning','danger','out_of_stock') CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'normal' COMMENT '总库存状态',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_product_id`(`product_id` ASC) USING BTREE,
@@ -127,7 +159,7 @@ CREATE TABLE `stock_inventory`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- ----------------------------
--- 6. 用户表
+-- 7. 用户表
 -- ----------------------------
 DROP TABLE IF EXISTS `users`;
 CREATE TABLE `users`  (

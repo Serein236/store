@@ -21,8 +21,8 @@ app.use(checkLoggedIn); // 全局登录状态检查
 
 // API路由
 app.use('/api/auth', authRoutes);
-app.use('/api/products', requireLogin, productRoutes);
-app.use('/api', requireLogin, inventoryRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api', inventoryRoutes);
 
 // 保护所有需要登录的页面
 const protectedPages = [

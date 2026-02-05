@@ -3,10 +3,10 @@ const dbUtils = require('../utils/dbUtils');
 
 const InRecordModel = {
     async create(recordData) {
-        const { product_id, stock_method_name, quantity, unit_price, total_amount, source, remark, recorded_date, created_by } = recordData;
+        const { product_id, stock_method_name, batch_number, production_date, expiration_date, quantity, unit_price, total_amount, source, remark, recorded_date, created_by } = recordData;
         const result = await dbUtils.insert(
-            'INSERT INTO in_records (product_id, stock_method_name, quantity, unit_price, total_amount, source, remark, recorded_date, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [product_id, stock_method_name, quantity, unit_price, total_amount, source, remark, recorded_date, created_by]
+            'INSERT INTO in_records (product_id, stock_method_name, batch_number, production_date, expiration_date, quantity, unit_price, total_amount, source, remark, recorded_date, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [product_id, stock_method_name, batch_number, production_date, expiration_date, quantity, unit_price, total_amount, source, remark, recorded_date, created_by]
         );
         return { id: result.insertId, ...recordData };
     },
@@ -33,6 +33,7 @@ const InRecordModel = {
         return await dbUtils.query(`
             SELECT i.*, 
                    DATE_FORMAT(i.recorded_date, '%Y-%m-%d') as display_date,
+                   DATE_FORMAT(i.created_at, '%Y-%m-%d') as created_at,
                    p.name as product_name 
             FROM in_records i 
             JOIN products p ON i.product_id = p.id 
@@ -51,7 +52,7 @@ const InRecordModel = {
         }
         
         return await dbUtils.query(
-            `SELECT *, DATE_FORMAT(recorded_date, '%Y-%m-%d') as display_date 
+            `SELECT *, DATE_FORMAT(recorded_date, '%Y-%m-%d') as display_date, DATE_FORMAT(created_at, '%Y-%m-%d') as created_at 
              FROM in_records ${whereCondition} ORDER BY recorded_date DESC`,
             params
         );

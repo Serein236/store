@@ -1,4 +1,4 @@
-const { promisePool } = require('../config/database');
+const { promisePool } = require('../config/databases');
 
 const dbUtils = {
     /**

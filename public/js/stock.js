@@ -88,7 +88,7 @@ async function checkLogin() {
             if (!stockData || stockData.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="9" class="text-center text-muted">
+                    <td colspan="10" class="text-center text-muted">
                         <i class="bi bi-inbox me-2"></i>暂无库存数据
                     </td>
                 `;
@@ -102,27 +102,37 @@ async function checkLogin() {
             }
 
             stockData.forEach(item => {
-                const totalIn = item.total_in_quantity || 0;
-                const totalOut = item.total_out_quantity || 0;
+                const totalIn = item.batch_in_quantity || 0;
+                const totalOut = item.batch_out_quantity || 0;
                 const currentStock = item.current_stock || 0;
-                const retailPrice = item.retail_price || 0;
-                const stockValue = retailPrice * currentStock;
+                const inPrice = item.in_price || 0;
+                const stockValue = inPrice * currentStock;
                 totalValue += stockValue;
+
+                let stockBadgeClass = 'bg-success';
+                if (currentStock <= 0) {
+                    stockBadgeClass = 'bg-danger';
+                } else if (item.danger_quantity && currentStock <= item.danger_quantity) {
+                    stockBadgeClass = 'bg-danger';
+                } else if (item.warning_quantity && currentStock <= item.warning_quantity) {
+                    stockBadgeClass = 'bg-warning';
+                }
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.id || '-'}</td>
-                    <td>${item.name || '-'}</td>
-                    <td>${item.spec || '-'}</td>
-                    <td>${item.unit || '-'}</td>
+                    <td>${item.product_id || '-'}</td>
+                    <td>${item.product_name || '-'}</td>
+                    <td>${item.product_spec || '-'}</td>
+                    <td>${item.product_unit || '-'}</td>
+                    <td>${item.batch_number || '-'}</td>
                     <td><span class="badge bg-info">${totalIn}</span></td>
                     <td><span class="badge bg-warning">${totalOut}</span></td>
                     <td>
-                        <span class="badge ${currentStock < 10 ? 'bg-danger' : 'bg-success'}">
+                        <span class="badge ${stockBadgeClass}">
                             ${currentStock}
                         </span>
                     </td>
-                    <td>${retailPrice ? '¥' + parseFloat(retailPrice).toFixed(2) : '-'}</td>
+                    <td>${inPrice ? '¥' + parseFloat(inPrice).toFixed(2) : '-'}</td>
                     <td class="fw-bold">${stockValue ? '¥' + stockValue.toFixed(2) : '-'}</td>
                 `;
                 tbody.appendChild(row);
@@ -149,7 +159,7 @@ async function checkLogin() {
             }
 
             let csvContent = "data:text/csv;charset=utf-8,\uFEFF";
-            csvContent += "商品ID,商品名称,规格,单位,总入库,总出库,现有库存,零售价,库存价值\n";
+            csvContent += "商品ID,商品名称,规格,单位,产品批号,总入库,总出库,现有库存,入库价,库存价值\n";
 
             for (let i = 0; i < rows.length; i++) {
                 const cells = rows[i].getElementsByTagName('td');

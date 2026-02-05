@@ -165,6 +165,31 @@
                 </div>
             </div>
 
+            <!-- 批次库存卡片 -->
+            <div class="card mt-3">
+                <div class="card-header d-flex align-items-center">
+                    <i class="bi bi-clipboard-data me-2"></i>批次库存
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>批次</th>
+                                    <th>生产日期</th>
+                                    <th>保质期</th>
+                                    <th>剩余库存</th>
+                                    <th>单位</th>
+                                </tr>
+                            </thead>
+                            <tbody id="batchStockTable">
+                                <!-- 动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- 入库明细卡片 -->
             <div class="card mt-3">
                 <div class="card-header d-flex align-items-center">
@@ -177,10 +202,13 @@
                                 <tr>
                                     <th>入库日期</th>
                                     <th>入库方式</th>
+                                    <th>批次</th>
+                                    <th>生产日期</th>
+                                    <th>保质期</th>
                                     <th>数量</th>
                                     <th>单价</th>
                                     <th>总金额</th>
-                                    <th>来源</th>
+                                    <th>供应商名称</th>
                                     <th>备注</th>
                                 </tr>
                             </thead>
@@ -204,10 +232,13 @@
                                 <tr>
                                     <th>出库日期</th>
                                     <th>出库方式</th>
+                                    <th>批次</th>
+                                    <th>生产日期</th>
+                                    <th>保质期</th>
                                     <th>数量</th>
                                     <th>单价</th>
                                     <th>总金额</th>
-                                    <th>去向</th>
+                                    <th>客户名称</th>
                                     <th>备注</th>
                                 </tr>
                             </thead>

@@ -123,6 +123,12 @@
                                         <option value="其他出库">其他出库</option>
                                     </select>
                                 </div>
+                                <div class="col-md-12">
+                                    <label for="batch_number" class="form-label">产品批号 <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="batch_number" required>
+                                        <option value="">请选择产品批号</option>
+                                    </select>
+                                </div>
                                 <div class="col-md-4">
                                     <label for="quantity" class="form-label">出库数量 <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="quantity" min="1" required
@@ -136,7 +142,7 @@
                                 <div class="col-md-4">
                                     <label for="total_amount" class="form-label">总金额 <span class="text-danger">*</span></label>
                                     <input type="number" class="form-control" id="total_amount" min="0" step="0.01" required
-                                        placeholder="自动计算">
+                                        placeholder="自动计算" readonly>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="recordedDate" class="form-label">出库日期 <span class="text-danger">*</span></label>

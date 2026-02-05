@@ -11,7 +11,27 @@ const InventoryService = {
             // 添加入库记录
             const record = await InRecordModel.create(data);
             
-            // 更新库存
+            // 检查批次库存是否存在
+            const existingBatch = await dbUtils.queryOne(
+                'SELECT * FROM batch_stock WHERE product_id = ? AND batch_number = ?',
+                [data.product_id, data.batch_number]
+            );
+            
+            if (existingBatch) {
+                // 更新批次库存
+                await dbUtils.update(
+                    'UPDATE batch_stock SET batch_in_quantity = batch_in_quantity + ?, batch_current_stock = batch_current_stock + ? WHERE id = ?',
+                    [data.quantity, data.quantity, existingBatch.id]
+                );
+            } else {
+                // 创建新批次库存
+                await dbUtils.insert(
+                    'INSERT INTO batch_stock (product_id, batch_number, production_date, expiration_date, batch_in_quantity, batch_out_quantity, batch_current_stock, batch_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [data.product_id, data.batch_number, data.production_date, data.expiration_date, data.quantity, 0, data.quantity, 'normal']
+                );
+            }
+            
+            // 更新总库存
             await StockModel.updateStock(data.product_id, data.quantity, 0);
             
             return record;
@@ -20,16 +40,32 @@ const InventoryService = {
 
     async outStock(data) {
         return await dbUtils.executeTransaction(async (connection) => {
-            // 检查库存
+            // 检查批次库存
+            const batchStock = await dbUtils.queryOne(
+                'SELECT * FROM batch_stock WHERE product_id = ? AND batch_number = ?',
+                [data.product_id, data.batch_number]
+            );
+            
+            if (!batchStock || batchStock.batch_current_stock < data.quantity) {
+                throw new Error('批次库存不足');
+            }
+            
+            // 检查总库存
             const stock = await StockModel.findByProductId(data.product_id);
             if (!stock || stock.current_stock < data.quantity) {
-                throw new Error('库存不足');
+                throw new Error('总库存不足');
             }
             
             // 添加出库记录
             const record = await OutRecordModel.create(data);
             
-            // 更新库存（减少库存）
+            // 更新批次库存
+            await dbUtils.update(
+                'UPDATE batch_stock SET batch_out_quantity = batch_out_quantity + ?, batch_current_stock = batch_current_stock - ? WHERE id = ?',
+                [data.quantity, data.quantity, batchStock.id]
+            );
+            
+            // 更新总库存（减少库存）
             await StockModel.updateStock(data.product_id, 0, data.quantity);
             
             return record;
@@ -37,7 +73,7 @@ const InventoryService = {
     },
 
     async getStockReport() {
-        return await StockModel.findAll();
+        return await StockModel.getBatchStockReport();
     },
 
     async getProductDetail(productId, month = null) {
@@ -49,6 +85,7 @@ const InventoryService = {
 
         const inRecords = await InRecordModel.findByProductId(productId, month);
         const outRecords = await OutRecordModel.findByProductId(productId, month);
+        console.log('OutRecordModel.findByProductId返回结果:', outRecords);
         
         const monthlyStats = await dbUtils.query(`
             SELECT 
@@ -65,6 +102,18 @@ const InventoryService = {
             ORDER BY month DESC
         `, [productId]);
 
+        // 查询批次库存信息
+        const batchStock = await dbUtils.query(`
+            SELECT 
+                batch_number, 
+                production_date, 
+                expiration_date, 
+                batch_current_stock as current_stock
+            FROM batch_stock 
+            WHERE product_id = ? 
+            ORDER BY batch_current_stock DESC
+        `, [productId]);
+
         return {
             product,
             inRecords: inRecords.map(record => ({
@@ -73,9 +122,12 @@ const InventoryService = {
             })),
             outRecords: outRecords.map(record => ({
                 ...record,
-                recorded_date: record.display_date
+                recorded_date: record.display_date,
+                production_date: record.production_date,
+                expiration_date: record.expiration_date
             })),
-            monthlyStats
+            monthlyStats,
+            batchStock
         };
     }
 };

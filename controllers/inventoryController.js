@@ -165,11 +165,11 @@ const inventoryController = {
 
     async getProductBatches(req, res) {
         const { productId } = req.params;
-        const username = req.session.username;
+        const username = req.session?.username || '未登录用户';
         
         try {
             const batches = await dbUtils.query(
-                'SELECT batch_number, batch_current_stock as current_stock FROM batch_stock WHERE product_id = ? AND batch_current_stock > 0 ORDER BY batch_number ASC',
+                'SELECT batch_number, batch_current_stock as current_stock FROM batch_stock WHERE product_id = ? ORDER BY batch_number ASC',
                 [productId]
             );
             logger.info('获取商品批次', { username, productId, batchCount: batches.length, timestamp: new Date().toISOString() });

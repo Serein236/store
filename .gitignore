@@ -165,4 +165,4 @@ pnpm-lock.yaml
 Thumbs.db
 
 # footer beian
-./public/js/config.js
+public/js/config.js

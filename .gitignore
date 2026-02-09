@@ -159,3 +159,10 @@ pnpm-lock.yaml
 *.njsproj
 *.sln
 *.sw?
+
+# Ignore files
+.DS_Store
+Thumbs.db
+
+# footer beian
+./public/js/config.js

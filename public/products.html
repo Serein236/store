@@ -162,6 +162,7 @@
 
     <!-- Bootstrap JS Bundle with Popper -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
 
     <script>
         // 生成随机6位数商品编码
@@ -174,6 +175,11 @@
             const productCodeInput = document.getElementById('productCode');
             if (productCodeInput) {
                 productCodeInput.value = generateProductCode();
+            }
+            
+            const beianLink = document.querySelector('footer a[href*="beian.miit.gov.cn"]');
+            if (beianLink && config.beian) {
+                beianLink.textContent = config.beian;
             }
         });
     </script>

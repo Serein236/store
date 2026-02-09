@@ -153,9 +153,18 @@
         </div>
     </footer>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
     <!-- 使用原始的SheetJS库，确保基本的导出功能正常工作 -->
     <script src="https://cdn.sheetjs.com/xlsx-0.19.3/package/dist/xlsx.full.min.js"></script>
     <script src="js/records_common.js"></script>
     <script src="js/out_records.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const beianLink = document.querySelector('footer a[href*="beian.miit.gov.cn"]');
+            if (beianLink && config.beian) {
+                beianLink.textContent = config.beian;
+            }
+        });
+    </script>
 </body>
 </html>

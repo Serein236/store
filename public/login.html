@@ -73,7 +73,16 @@
         </div>
     </footer>
 
+    <script src="js/config.js"></script>
     <script src="js/login.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const beianLink = document.querySelector('footer a[href*="beian.miit.gov.cn"]');
+            if (beianLink && config.beian) {
+                beianLink.textContent = config.beian;
+            }
+        });
+    </script>
 </body>
 
 </html>

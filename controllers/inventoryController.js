@@ -183,7 +183,7 @@ const inventoryController = {
 
     async getOutRecordById(req, res) {
         const { id } = req.params;
-        const username = req.session.username;
+        const username = req.session?.username || '未登录用户';
         
         try {
             console.log('获取出库记录详情，ID:', id);
@@ -248,6 +248,58 @@ const inventoryController = {
             console.error('获取出库记录错误:', error);
             logger.error('获取出库记录失败', { id, error: error.message });
             res.status(500).json({ error: '获取出库记录失败' });
+        }
+    },
+
+    async getSuppliers(req, res) {
+        const username = req.session?.username || '未登录用户';
+        const { query } = req.query;
+        
+        try {
+            let suppliers = [];
+            if (query && query.length >= 2) {
+                suppliers = await dbUtils.query(
+                    'SELECT DISTINCT source FROM in_records WHERE source LIKE ? AND source IS NOT NULL AND source != "" ORDER BY source ASC',
+                    [`${query}%`]
+                );
+            } else {
+                suppliers = await dbUtils.query(
+                    'SELECT DISTINCT source FROM in_records WHERE source IS NOT NULL AND source != "" ORDER BY source ASC LIMIT 10'
+                );
+            }
+            
+            logger.info('获取供应商列表', { username, query, supplierCount: suppliers.length, timestamp: new Date().toISOString() });
+            res.json(suppliers.map(item => item.source));
+        } catch (error) {
+            console.error('获取供应商列表错误:', error);
+            logger.error('获取供应商列表失败', { query, error: error.message });
+            res.status(500).json({ error: '获取供应商列表失败' });
+        }
+    },
+
+    async getCustomers(req, res) {
+        const username = req.session?.username || '未登录用户';
+        const { query } = req.query;
+        
+        try {
+            let customers = [];
+            if (query && query.length >= 2) {
+                customers = await dbUtils.query(
+                    'SELECT DISTINCT destination FROM out_records WHERE destination LIKE ? AND destination IS NOT NULL AND destination != "" ORDER BY destination ASC',
+                    [`${query}%`]
+                );
+            } else {
+                customers = await dbUtils.query(
+                    'SELECT DISTINCT destination FROM out_records WHERE destination IS NOT NULL AND destination != "" ORDER BY destination ASC LIMIT 10'
+                );
+            }
+            
+            logger.info('获取客户列表', { username, query, customerCount: customers.length, timestamp: new Date().toISOString() });
+            res.json(customers.map(item => item.destination));
+        } catch (error) {
+            console.error('获取客户列表错误:', error);
+            logger.error('获取客户列表失败', { query, error: error.message });
+            res.status(500).json({ error: '获取客户列表失败' });
         }
     }
 };

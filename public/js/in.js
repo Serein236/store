@@ -195,4 +195,64 @@ async function checkLogin() {
             }
         }
 
-        document.addEventListener('DOMContentLoaded', checkLogin);
+        // 供应商名称自动完成功能
+        function setupSupplierAutocomplete() {
+            const sourceInput = document.getElementById('source');
+            const suggestionsContainer = document.getElementById('supplierSuggestions');
+            let debounceTimer;
+
+            sourceInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length >= 2) {
+                    debounceTimer = setTimeout(async () => {
+                        try {
+                            const response = await fetch(`/api/suppliers?query=${encodeURIComponent(query)}`);
+                            const suppliers = await response.json();
+                            showSupplierSuggestions(suppliers);
+                        } catch (error) {
+                            console.error('获取供应商列表失败:', error);
+                            hideSupplierSuggestions();
+                        }
+                    }, 300);
+                } else {
+                    hideSupplierSuggestions();
+                }
+            });
+
+            function showSupplierSuggestions(suppliers) {
+                suggestionsContainer.innerHTML = '';
+                if (suppliers.length > 0) {
+                    suppliers.forEach(supplier => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'p-2 hover:bg-light cursor-pointer';
+                        suggestionItem.textContent = supplier;
+                        suggestionItem.addEventListener('click', () => {
+                            sourceInput.value = supplier;
+                            hideSupplierSuggestions();
+                        });
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+                    suggestionsContainer.classList.remove('d-none');
+                } else {
+                    hideSupplierSuggestions();
+                }
+            }
+
+            function hideSupplierSuggestions() {
+                suggestionsContainer.classList.add('d-none');
+            }
+
+            // 点击页面其他地方关闭建议列表
+            document.addEventListener('click', function(event) {
+                if (!sourceInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                    hideSupplierSuggestions();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLogin();
+            setupSupplierAutocomplete();
+        });

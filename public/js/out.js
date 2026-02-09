@@ -231,4 +231,64 @@ async function checkLogin() {
             }
         }
 
-        document.addEventListener('DOMContentLoaded', checkLogin);
+        // 客户名称自动完成功能
+        function setupCustomerAutocomplete() {
+            const destinationInput = document.getElementById('destination');
+            const suggestionsContainer = document.getElementById('customerSuggestions');
+            let debounceTimer;
+
+            destinationInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length >= 2) {
+                    debounceTimer = setTimeout(async () => {
+                        try {
+                            const response = await fetch(`/api/customers?query=${encodeURIComponent(query)}`);
+                            const customers = await response.json();
+                            showCustomerSuggestions(customers);
+                        } catch (error) {
+                            console.error('获取客户列表失败:', error);
+                            hideCustomerSuggestions();
+                        }
+                    }, 300);
+                } else {
+                    hideCustomerSuggestions();
+                }
+            });
+
+            function showCustomerSuggestions(customers) {
+                suggestionsContainer.innerHTML = '';
+                if (customers.length > 0) {
+                    customers.forEach(customer => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'p-2 hover:bg-light cursor-pointer';
+                        suggestionItem.textContent = customer;
+                        suggestionItem.addEventListener('click', () => {
+                            destinationInput.value = customer;
+                            hideCustomerSuggestions();
+                        });
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+                    suggestionsContainer.classList.remove('d-none');
+                } else {
+                    hideCustomerSuggestions();
+                }
+            }
+
+            function hideCustomerSuggestions() {
+                suggestionsContainer.classList.add('d-none');
+            }
+
+            // 点击页面其他地方关闭建议列表
+            document.addEventListener('click', function(event) {
+                if (!destinationInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                    hideCustomerSuggestions();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLogin();
+            setupCustomerAutocomplete();
+        });

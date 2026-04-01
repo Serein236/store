@@ -125,6 +125,12 @@ async function loadOutRecords() {
                     <button class="btn btn-sm btn-success btn-action" onclick="exportOutOrder(${record.id})">
                         <i class="bi bi-download me-1"></i>导出
                     </button>
+                    <button class="btn btn-sm btn-warning btn-action" onclick="editOutRecord(${record.id})">
+                        <i class="bi bi-pencil-square me-1"></i>修改
+                    </button>
+                    <button class="btn btn-sm btn-danger btn-action" onclick="cancelOutRecord(${record.id})">
+                        <i class="bi bi-x-circle me-1"></i>撤销
+                    </button>
                 </td>
             `;
             recordsBody.appendChild(row);
@@ -1322,4 +1328,150 @@ async function confirmBatchExport() {
 }
 
 // 页面加载完成后初始化
-window.addEventListener('DOMContentLoaded', initOutRecordsPage);
+// 撤销出库记录
+async function cancelOutRecord(id) {
+    if (!confirm('确定要撤销这条出库记录吗？此操作将恢复库存，请谨慎操作！')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/api/out-records/${id}/cancel`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('撤销出库成功！');
+            // 重新加载出库记录
+            await loadOutRecords();
+        } else {
+            alert('撤销出库失败: ' + data.message);
+        }
+    } catch (error) {
+        console.error('撤销出库失败:', error);
+        alert('撤销出库失败，请稍后重试');
+    }
+}
+
+// 修改出库记录
+async function editOutRecord(id) {
+    try {
+        const response = await fetch(`/api/out-records`);
+        if (!response.ok) {
+            throw new Error('获取出库记录失败');
+        }
+        
+        const outRecords = await response.json();
+        const record = outRecords.find(r => r.id === id);
+        
+        if (!record) {
+            alert('找不到该出库记录');
+            return;
+        }
+        
+        // 填充表单数据
+        document.getElementById('edit_out_record_id').value = record.id;
+        document.getElementById('edit_out_product_name').value = record.product_name;
+        document.getElementById('edit_out_batch_number').value = record.batch_number || '';
+        document.getElementById('edit_out_quantity').value = record.quantity;
+        document.getElementById('edit_out_unit_price').value = record.unit_price;
+        document.getElementById('edit_out_total_amount').value = record.total_amount;
+        document.getElementById('edit_out_destination').value = record.destination || '';
+        document.getElementById('edit_out_recorded_date').value = record.display_date || '';
+        document.getElementById('edit_out_remark').value = record.remark || '';
+        
+        // 加载出库方式
+        await loadEditOutStockMethods(record.stock_method_name);
+        
+        // 显示模态框
+        const modal = new bootstrap.Modal(document.getElementById('editOutRecordModal'));
+        modal.show();
+        
+    } catch (error) {
+        console.error('加载出库记录失败:', error);
+        alert('加载出库记录失败，请稍后重试');
+    }
+}
+
+// 加载修改模态框中的出库方式
+async function loadEditOutStockMethods(selectedMethod) {
+    try {
+        const response = await fetch('/api/stock-methods?type=out');
+        const methods = await response.json();
+        const select = document.getElementById('edit_out_stock_method_name');
+        select.innerHTML = '<option value="">请选择出库方式</option>';
+        methods.forEach(method => {
+            const option = document.createElement('option');
+            option.value = method;
+            option.textContent = method;
+            if (method === selectedMethod) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('加载出库方式失败:', error);
+    }
+}
+
+// 计算修改模态框中的总金额
+function calculateEditOutTotal() {
+    const quantity = parseFloat(document.getElementById('edit_out_quantity').value) || 0;
+    const unitPrice = parseFloat(document.getElementById('edit_out_unit_price').value) || 0;
+    const totalAmount = quantity * unitPrice;
+    document.getElementById('edit_out_total_amount').value = totalAmount.toFixed(2);
+}
+
+// 保存修改
+async function saveEditOutRecord() {
+    const id = document.getElementById('edit_out_record_id').value;
+    const updateData = {
+        stock_method_name: document.getElementById('edit_out_stock_method_name').value,
+        quantity: parseInt(document.getElementById('edit_out_quantity').value),
+        unit_price: parseFloat(document.getElementById('edit_out_unit_price').value),
+        total_amount: parseFloat(document.getElementById('edit_out_total_amount').value),
+        destination: document.getElementById('edit_out_destination').value,
+        recorded_date: document.getElementById('edit_out_recorded_date').value,
+        remark: document.getElementById('edit_out_remark').value
+    };
+    
+    try {
+        const response = await fetch(`/api/out-records/${id}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('修改出库成功！');
+            // 关闭模态框
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editOutRecordModal'));
+            modal.hide();
+            // 重新加载出库记录
+            await loadOutRecords();
+        } else {
+            alert('修改出库失败: ' + data.message);
+        }
+    } catch (error) {
+        console.error('修改出库失败:', error);
+        alert('修改出库失败，请稍后重试');
+    }
+}
+
+// 页面加载完成后初始化
+window.addEventListener('DOMContentLoaded', function() {
+    initOutRecordsPage();
+    
+    // 添加修改模态框的事件监听
+    document.getElementById('edit_out_quantity').addEventListener('input', calculateEditOutTotal);
+    document.getElementById('edit_out_unit_price').addEventListener('input', calculateEditOutTotal);
+    document.getElementById('saveEditOutBtn').addEventListener('click', saveEditOutRecord);
+});

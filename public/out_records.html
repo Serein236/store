@@ -146,6 +146,73 @@
             </div>
         </div>
     </div>
+
+    <!-- 修改出库记录模态框 -->
+    <div class="modal fade" id="editOutRecordModal" tabindex="-1" aria-labelledby="editOutRecordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editOutRecordModalLabel">修改出库记录</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editOutRecordForm">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="edit_out_product_name" class="form-label">商品名称</label>
+                                <input type="text" class="form-control" id="edit_out_product_name" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_out_stock_method_name" class="form-label">出库方式</label>
+                                <select class="form-select" id="edit_out_stock_method_name">
+                                    <option value="">请选择出库方式</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_out_batch_number" class="form-label">产品批号</label>
+                                <input type="text" class="form-control" id="edit_out_batch_number" placeholder="请输入产品批号" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_out_quantity" class="form-label">出库数量</label>
+                                <input type="number" class="form-control" id="edit_out_quantity" min="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_out_unit_price" class="form-label">出库单价</label>
+                                <input type="number" class="form-control" id="edit_out_unit_price" min="0" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_out_total_amount" class="form-label">总金额</label>
+                                <input type="number" class="form-control" id="edit_out_total_amount" min="0" step="0.01" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_out_destination" class="form-label">客户名称</label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="edit_out_destination" placeholder="如客户名称">
+                                    <div id="editCustomerSuggestions" class="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-10 d-none">
+                                        <!-- 客户建议将通过JavaScript动态添加 -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_out_recorded_date" class="form-label">出库日期</label>
+                                <input type="date" class="form-control" id="edit_out_recorded_date">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="edit_out_remark" class="form-label">备注</label>
+                                <textarea class="form-control" id="edit_out_remark" rows="2" placeholder="请输入备注"></textarea>
+                            </div>
+                        </div>
+                        <input type="hidden" id="edit_out_record_id">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveEditOutBtn">保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="container">
             &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"

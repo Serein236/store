@@ -72,6 +72,75 @@ const OutRecordModel = {
              WHERE product_id = ? AND DATE_FORMAT(recorded_date, "%Y-%m") = ?`,
             [productId, month]
         );
+    },
+
+    async findById(id) {
+        return await dbUtils.queryOne(
+            'SELECT * FROM out_records WHERE id = ?',
+            [id]
+        );
+    },
+
+    async delete(id) {
+        return await dbUtils.delete(
+            'DELETE FROM out_records WHERE id = ?',
+            [id]
+        );
+    },
+
+    async update(id, data) {
+        const { product_id, stock_method_name, batch_number, quantity, unit_price, total_amount, destination, remark, recorded_date } = data;
+        
+        const updateFields = [];
+        const updateValues = [];
+        
+        if (product_id !== undefined) {
+            updateFields.push('product_id = ?');
+            updateValues.push(product_id);
+        }
+        if (stock_method_name !== undefined) {
+            updateFields.push('stock_method_name = ?');
+            updateValues.push(stock_method_name);
+        }
+        if (batch_number !== undefined) {
+            updateFields.push('batch_number = ?');
+            updateValues.push(batch_number);
+        }
+        if (quantity !== undefined) {
+            updateFields.push('quantity = ?');
+            updateValues.push(quantity);
+        }
+        if (unit_price !== undefined) {
+            updateFields.push('unit_price = ?');
+            updateValues.push(unit_price);
+        }
+        if (total_amount !== undefined) {
+            updateFields.push('total_amount = ?');
+            updateValues.push(total_amount);
+        }
+        if (destination !== undefined) {
+            updateFields.push('destination = ?');
+            updateValues.push(destination);
+        }
+        if (remark !== undefined) {
+            updateFields.push('remark = ?');
+            updateValues.push(remark);
+        }
+        if (recorded_date !== undefined) {
+            updateFields.push('recorded_date = ?');
+            updateValues.push(recorded_date);
+        }
+        
+        if (updateFields.length === 0) {
+            return;
+        }
+        
+        updateValues.push(id);
+        
+        return await dbUtils.update(
+            `UPDATE out_records SET ${updateFields.join(', ')} WHERE id = ?`,
+            updateValues
+        );
     }
 };
 

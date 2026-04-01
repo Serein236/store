@@ -383,6 +383,46 @@ const inventoryController = {
             logger.error('修改入库失败', { username, inRecordId: id, error: error.message });
             res.status(500).json({ success: false, message: error.message || '修改入库失败' });
         }
+    },
+
+    async cancelOutStock(req, res) {
+        const { id } = req.params;
+        const username = req.session?.username || '未登录用户';
+        
+        try {
+            await InventoryService.cancelOutStock(id);
+            
+            logger.info('撤销出库成功', { username, outRecordId: id, timestamp: new Date().toISOString() });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('撤销出库错误:', error);
+            logger.error('撤销出库失败', { username, outRecordId: id, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '撤销出库失败' });
+        }
+    },
+
+    async updateOutStock(req, res) {
+        const { id } = req.params;
+        const updateData = req.body;
+        const username = req.session?.username || '未登录用户';
+        
+        try {
+            const formattedDate = updateData.recorded_date ? formatDateForMySQL(updateData.recorded_date) : undefined;
+            
+            const data = {
+                ...updateData,
+                recorded_date: formattedDate
+            };
+            
+            await InventoryService.updateOutStock(id, data);
+            
+            logger.info('修改出库成功', { username, outRecordId: id, timestamp: new Date().toISOString() });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('修改出库错误:', error);
+            logger.error('修改出库失败', { username, outRecordId: id, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '修改出库失败' });
+        }
     }
 };
 

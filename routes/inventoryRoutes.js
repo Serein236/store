@@ -5,6 +5,8 @@ const inventoryController = require('../controllers/inventoryController');
 router.post('/in', inventoryController.inStock);
 router.post('/out', inventoryController.outStock);
 router.get('/in-records', inventoryController.getInRecords);
+router.delete('/in-records/:id/cancel', inventoryController.cancelInStock);
+router.put('/in-records/:id', inventoryController.updateInStock);
 router.get('/out-records', inventoryController.getOutRecords);
 router.get('/stock', inventoryController.getStock);
 router.get('/query/:productId', inventoryController.queryProductDetail);

@@ -65,6 +65,83 @@ const InRecordModel = {
              WHERE product_id = ? AND DATE_FORMAT(recorded_date, "%Y-%m") = ?`,
             [productId, month]
         );
+    },
+
+    async findById(id) {
+        return await dbUtils.queryOne(
+            'SELECT * FROM in_records WHERE id = ?',
+            [id]
+        );
+    },
+
+    async delete(id) {
+        return await dbUtils.delete(
+            'DELETE FROM in_records WHERE id = ?',
+            [id]
+        );
+    },
+
+    async update(id, data) {
+        const { product_id, stock_method_name, batch_number, production_date, expiration_date, quantity, unit_price, total_amount, source, remark, recorded_date } = data;
+        
+        const updateFields = [];
+        const updateValues = [];
+        
+        if (product_id !== undefined) {
+            updateFields.push('product_id = ?');
+            updateValues.push(product_id);
+        }
+        if (stock_method_name !== undefined) {
+            updateFields.push('stock_method_name = ?');
+            updateValues.push(stock_method_name);
+        }
+        if (batch_number !== undefined) {
+            updateFields.push('batch_number = ?');
+            updateValues.push(batch_number);
+        }
+        if (production_date !== undefined) {
+            updateFields.push('production_date = ?');
+            updateValues.push(production_date);
+        }
+        if (expiration_date !== undefined) {
+            updateFields.push('expiration_date = ?');
+            updateValues.push(expiration_date);
+        }
+        if (quantity !== undefined) {
+            updateFields.push('quantity = ?');
+            updateValues.push(quantity);
+        }
+        if (unit_price !== undefined) {
+            updateFields.push('unit_price = ?');
+            updateValues.push(unit_price);
+        }
+        if (total_amount !== undefined) {
+            updateFields.push('total_amount = ?');
+            updateValues.push(total_amount);
+        }
+        if (source !== undefined) {
+            updateFields.push('source = ?');
+            updateValues.push(source);
+        }
+        if (remark !== undefined) {
+            updateFields.push('remark = ?');
+            updateValues.push(remark);
+        }
+        if (recorded_date !== undefined) {
+            updateFields.push('recorded_date = ?');
+            updateValues.push(recorded_date);
+        }
+        
+        if (updateFields.length === 0) {
+            return;
+        }
+        
+        updateValues.push(id);
+        
+        return await dbUtils.update(
+            `UPDATE in_records SET ${updateFields.join(', ')} WHERE id = ?`,
+            updateValues
+        );
     }
 };
 

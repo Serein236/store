@@ -339,6 +339,50 @@ const inventoryController = {
             logger.error('获取产品批号列表失败', { productId, query, error: error.message });
             res.status(500).json({ error: '获取产品批号列表失败' });
         }
+    },
+
+    async cancelInStock(req, res) {
+        const { id } = req.params;
+        const username = req.session?.username || '未登录用户';
+        
+        try {
+            await InventoryService.cancelInStock(id);
+            
+            logger.info('撤销入库成功', { username, inRecordId: id, timestamp: new Date().toISOString() });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('撤销入库错误:', error);
+            logger.error('撤销入库失败', { username, inRecordId: id, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '撤销入库失败' });
+        }
+    },
+
+    async updateInStock(req, res) {
+        const { id } = req.params;
+        const updateData = req.body;
+        const username = req.session?.username || '未登录用户';
+        
+        try {
+            const formattedDate = updateData.recorded_date ? formatDateForMySQL(updateData.recorded_date) : undefined;
+            const formattedProductionDate = updateData.production_date ? formatDateForMySQL(updateData.production_date) : undefined;
+            const formattedExpirationDate = updateData.expiration_date ? formatDateForMySQL(updateData.expiration_date) : undefined;
+            
+            const data = {
+                ...updateData,
+                recorded_date: formattedDate,
+                production_date: formattedProductionDate,
+                expiration_date: formattedExpirationDate
+            };
+            
+            await InventoryService.updateInStock(id, data);
+            
+            logger.info('修改入库成功', { username, inRecordId: id, timestamp: new Date().toISOString() });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('修改入库错误:', error);
+            logger.error('修改入库失败', { username, inRecordId: id, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '修改入库失败' });
+        }
     }
 };
 

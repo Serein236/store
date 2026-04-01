@@ -129,6 +129,104 @@ const InventoryService = {
             monthlyStats,
             batchStock
         };
+    },
+
+    async cancelInStock(inRecordId) {
+        return await dbUtils.executeTransaction(async (connection) => {
+            // 获取入库记录
+            const inRecord = await InRecordModel.findById(inRecordId);
+            if (!inRecord) {
+                throw new Error('入库记录不存在');
+            }
+
+            // 检查批次库存是否足够
+            const batchStock = await dbUtils.queryOne(
+                'SELECT * FROM batch_stock WHERE product_id = ? AND batch_number = ?',
+                [inRecord.product_id, inRecord.batch_number]
+            );
+
+            if (!batchStock || batchStock.batch_current_stock < inRecord.quantity) {
+                throw new Error('批次库存不足，无法撤销');
+            }
+
+            // 检查总库存是否足够
+            const stock = await StockModel.findByProductId(inRecord.product_id);
+            if (!stock || stock.current_stock < inRecord.quantity) {
+                throw new Error('总库存不足，无法撤销');
+            }
+
+            // 更新批次库存
+            await dbUtils.update(
+                'UPDATE batch_stock SET batch_in_quantity = batch_in_quantity - ?, batch_current_stock = batch_current_stock - ? WHERE id = ?',
+                [inRecord.quantity, inRecord.quantity, batchStock.id]
+            );
+
+            // 更新总库存（减少库存）
+            await StockModel.updateStock(inRecord.product_id, 0, inRecord.quantity);
+
+            // 删除入库记录
+            await InRecordModel.delete(inRecordId);
+
+            return { success: true };
+        });
+    },
+
+    async updateInStock(inRecordId, data) {
+        return await dbUtils.executeTransaction(async (connection) => {
+            // 获取原始入库记录
+            const originalRecord = await InRecordModel.findById(inRecordId);
+            if (!originalRecord) {
+                throw new Error('入库记录不存在');
+            }
+
+            // 计算数量差异
+            const quantityDiff = data.quantity - originalRecord.quantity;
+
+            if (quantityDiff !== 0) {
+                // 检查批次库存是否足够（如果减少库存）
+                if (quantityDiff < 0) {
+                    const batchStock = await dbUtils.queryOne(
+                        'SELECT * FROM batch_stock WHERE product_id = ? AND batch_number = ?',
+                        [originalRecord.product_id, originalRecord.batch_number]
+                    );
+
+                    if (!batchStock || batchStock.batch_current_stock < Math.abs(quantityDiff)) {
+                        throw new Error('批次库存不足，无法修改');
+                    }
+
+                    // 检查总库存是否足够
+                    const stock = await StockModel.findByProductId(originalRecord.product_id);
+                    if (!stock || stock.current_stock < Math.abs(quantityDiff)) {
+                        throw new Error('总库存不足，无法修改');
+                    }
+                }
+
+                // 更新批次库存
+                const batchStock = await dbUtils.queryOne(
+                    'SELECT * FROM batch_stock WHERE product_id = ? AND batch_number = ?',
+                    [originalRecord.product_id, originalRecord.batch_number]
+                );
+
+                if (batchStock) {
+                    await dbUtils.update(
+                        'UPDATE batch_stock SET batch_in_quantity = batch_in_quantity + ?, batch_current_stock = batch_current_stock + ? WHERE id = ?',
+                        [quantityDiff, quantityDiff, batchStock.id]
+                    );
+                }
+
+                // 更新总库存
+                if (quantityDiff > 0) {
+                    await StockModel.updateStock(originalRecord.product_id, quantityDiff, 0);
+                } else {
+                    await StockModel.updateStock(originalRecord.product_id, 0, Math.abs(quantityDiff));
+                }
+            }
+
+            // 更新入库记录
+            await InRecordModel.update(inRecordId, data);
+
+            return { success: true };
+        });
     }
 };
 

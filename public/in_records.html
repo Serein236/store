@@ -127,6 +127,7 @@
                                 <th>入库日期</th>
                                 <th>备注</th>
                                 <th>操作时间</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody id="inRecordsBody">
@@ -137,6 +138,81 @@
             </div>
         </div>
     </div>
+
+    <!-- 修改入库记录模态框 -->
+    <div class="modal fade" id="editInRecordModal" tabindex="-1" aria-labelledby="editInRecordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editInRecordModalLabel">修改入库记录</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editInRecordForm">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="edit_product_name" class="form-label">商品名称</label>
+                                <input type="text" class="form-control" id="edit_product_name" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_stock_method_name" class="form-label">入库方式</label>
+                                <select class="form-select" id="edit_stock_method_name">
+                                    <option value="">请选择入库方式</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_batch_number" class="form-label">产品批号</label>
+                                <input type="text" class="form-control" id="edit_batch_number" placeholder="请输入产品批号">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_production_date" class="form-label">生产日期</label>
+                                <input type="date" class="form-control" id="edit_production_date">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_expiration_date" class="form-label">有效期</label>
+                                <input type="date" class="form-control" id="edit_expiration_date">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_quantity" class="form-label">入库数量</label>
+                                <input type="number" class="form-control" id="edit_quantity" min="1">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_unit_price" class="form-label">入库单价</label>
+                                <input type="number" class="form-control" id="edit_unit_price" min="0" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="edit_total_amount" class="form-label">总金额</label>
+                                <input type="number" class="form-control" id="edit_total_amount" min="0" step="0.01" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_source" class="form-label">供应商名称</label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="edit_source" placeholder="如供应商名称">
+                                    <div id="editSupplierSuggestions" class="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-10 d-none">
+                                        <!-- 供应商建议将通过JavaScript动态添加 -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="edit_recorded_date" class="form-label">入库日期</label>
+                                <input type="date" class="form-control" id="edit_recorded_date">
+                            </div>
+                            <div class="col-md-12">
+                                <label for="edit_remark" class="form-label">备注</label>
+                                <textarea class="form-control" id="edit_remark" rows="2" placeholder="请输入备注"></textarea>
+                            </div>
+                        </div>
+                        <input type="hidden" id="edit_record_id">
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveEditBtn">保存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <footer>
         <div class="container">
             &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"

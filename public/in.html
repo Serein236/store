@@ -125,7 +125,12 @@
                                 </div>
                                 <div class="col-md-12">
                                     <label for="batch_number" class="form-label">产品批号 <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="batch_number" required placeholder="请输入产品批号">
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control" id="batch_number" required placeholder="请输入产品批号">
+                                        <div id="batchSuggestions" class="position-absolute w-100 bg-white border rounded shadow-sm mt-1 z-10 d-none">
+                                            <!-- 产品批号建议将通过JavaScript动态添加 -->
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="production_date" class="form-label">生产日期 <span class="text-danger">*</span></label>

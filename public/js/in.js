@@ -252,7 +252,65 @@ async function checkLogin() {
             });
         }
 
+        // 产品批号自动完成功能
+        function setupBatchAutocomplete() {
+            const batchInput = document.getElementById('batch_number');
+            const suggestionsContainer = document.getElementById('batchSuggestions');
+            let debounceTimer;
+
+            batchInput.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const query = this.value.trim();
+
+                if (query.length >= 2) {
+                    debounceTimer = setTimeout(async () => {
+                        try {
+                            const response = await fetch(`/api/product-batches?query=${encodeURIComponent(query)}`);
+                            const batches = await response.json();
+                            showBatchSuggestions(batches);
+                        } catch (error) {
+                            console.error('获取产品批号列表失败:', error);
+                            hideBatchSuggestions();
+                        }
+                    }, 300);
+                } else {
+                    hideBatchSuggestions();
+                }
+            });
+
+            function showBatchSuggestions(batches) {
+                suggestionsContainer.innerHTML = '';
+                if (batches.length > 0) {
+                    batches.forEach(batch => {
+                        const suggestionItem = document.createElement('div');
+                        suggestionItem.className = 'p-2 hover:bg-light cursor-pointer';
+                        suggestionItem.textContent = batch.batch_number;
+                        suggestionItem.addEventListener('click', () => {
+                            batchInput.value = batch.batch_number;
+                            hideBatchSuggestions();
+                        });
+                        suggestionsContainer.appendChild(suggestionItem);
+                    });
+                    suggestionsContainer.classList.remove('d-none');
+                } else {
+                    hideBatchSuggestions();
+                }
+            }
+
+            function hideBatchSuggestions() {
+                suggestionsContainer.classList.add('d-none');
+            }
+
+            // 点击页面其他地方关闭建议列表
+            document.addEventListener('click', function(event) {
+                if (!batchInput.contains(event.target) && !suggestionsContainer.contains(event.target)) {
+                    hideBatchSuggestions();
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             checkLogin();
             setupSupplierAutocomplete();
+            setupBatchAutocomplete();
         });

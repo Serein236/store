@@ -9,6 +9,7 @@ router.get('/out-records', inventoryController.getOutRecords);
 router.get('/stock', inventoryController.getStock);
 router.get('/query/:productId', inventoryController.queryProductDetail);
 router.get('/stock-methods', inventoryController.getStockMethods);
+router.get('/product-batches', inventoryController.getProductBatches);
 router.get('/product-batches/:productId', inventoryController.getProductBatches);
 router.get('/suppliers', inventoryController.getSuppliers);
 router.get('/customers', inventoryController.getCustomers);

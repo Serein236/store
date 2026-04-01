@@ -301,6 +301,44 @@ const inventoryController = {
             logger.error('获取客户列表失败', { query, error: error.message });
             res.status(500).json({ error: '获取客户列表失败' });
         }
+    },
+
+    async getProductBatches(req, res) {
+        const username = req.session?.username || '未登录用户';
+        const { productId } = req.params;
+        const { query } = req.query;
+        
+        try {
+            if (productId) {
+                // 获取指定商品的批次
+                const batches = await dbUtils.query(
+                    'SELECT batch_number, batch_current_stock as current_stock FROM batch_stock WHERE product_id = ? ORDER BY batch_number ASC',
+                    [productId]
+                );
+                logger.info('获取商品批次', { username, productId, batchCount: batches.length, timestamp: new Date().toISOString() });
+                res.json(batches);
+            } else {
+                // 获取所有批次（支持查询）
+                let batches = [];
+                if (query && query.length >= 2) {
+                    batches = await dbUtils.query(
+                        'SELECT DISTINCT batch_number FROM in_records WHERE batch_number LIKE ? AND batch_number IS NOT NULL AND batch_number != "" ORDER BY batch_number ASC',
+                        [query + '%']
+                    );
+                } else {
+                    batches = await dbUtils.query(
+                        'SELECT DISTINCT batch_number FROM in_records WHERE batch_number IS NOT NULL AND batch_number != "" ORDER BY batch_number ASC LIMIT 10'
+                    );
+                }
+                
+                logger.info('获取产品批号列表', { username, query, batchCount: batches.length, timestamp: new Date().toISOString() });
+                res.json(batches.map(item => ({ batch_number: item.batch_number })));
+            }
+        } catch (error) {
+            console.error('获取产品批号列表错误:', error);
+            logger.error('获取产品批号列表失败', { productId, query, error: error.message });
+            res.status(500).json({ error: '获取产品批号列表失败' });
+        }
     }
 };
 

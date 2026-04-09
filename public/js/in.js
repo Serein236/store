@@ -142,20 +142,112 @@ async function checkLogin() {
             document.getElementById('total_amount').value = totalAmount.toFixed(2);
         }
 
+        let isSubmitting = false;
+
         document.getElementById('inForm').addEventListener('submit', async function (e) {
             e.preventDefault();
+
+            // 防止重复提交
+            if (isSubmitting) {
+                return;
+            }
+            isSubmitting = true;
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>提交中...';
+            }
+
+            // 获取并验证必填字段
+            const productId = document.getElementById('productId').value;
+            const stockMethodName = document.getElementById('stock_method_name').value;
+            const batchNumber = document.getElementById('batch_number').value.trim();
+            const productionDate = document.getElementById('production_date').value;
+            const expirationDate = document.getElementById('expiration_date').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const unitPrice = parseFloat(document.getElementById('unit_price').value);
+            const totalAmount = parseFloat(document.getElementById('total_amount').value);
+            const recordedDate = document.getElementById('recordedDate').value;
+
+            // 验证必填字段
+            if (!productId) {
+                alert('请选择商品');
+                document.getElementById('productId').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+            if (!stockMethodName) {
+                alert('请选择入库方式');
+                document.getElementById('stock_method_name').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+            if (!batchNumber) {
+                alert('请输入产品批号');
+                document.getElementById('batch_number').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+            if (!productionDate) {
+                alert('请选择生产日期');
+                document.getElementById('production_date').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+            if (!expirationDate) {
+                alert('请选择过期日期');
+                document.getElementById('expiration_date').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+            if (!quantity || quantity <= 0) {
+                alert('请输入有效的入库数量');
+                document.getElementById('quantity').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+            if (isNaN(unitPrice) || unitPrice < 0) {
+                alert('请输入有效的入库单价');
+                document.getElementById('unit_price').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+            if (!recordedDate) {
+                alert('请选择入库日期');
+                document.getElementById('recordedDate').focus();
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                return;
+            }
+
             const inData = {
-                product_id: document.getElementById('productId').value,
-                stock_method_name: document.getElementById('stock_method_name').value,
-                batch_number: document.getElementById('batch_number').value,
-                production_date: document.getElementById('production_date').value,
-                expiration_date: document.getElementById('expiration_date').value,
-                quantity: parseInt(document.getElementById('quantity').value),
-                unit_price: parseFloat(document.getElementById('unit_price').value),
-                total_amount: parseFloat(document.getElementById('total_amount').value),
+                product_id: productId,
+                stock_method_name: stockMethodName,
+                batch_number: batchNumber,
+                production_date: productionDate,
+                expiration_date: expirationDate,
+                quantity: quantity,
+                unit_price: unitPrice,
+                total_amount: totalAmount,
                 remark: document.getElementById('remark').value,
                 source: document.getElementById('source').value,
-                recorded_date: document.getElementById('recordedDate').value
+                recorded_date: recordedDate
             };
             try {
                 const response = await fetch('/api/in', {
@@ -183,6 +275,13 @@ async function checkLogin() {
             } catch (error) {
                 console.error('入库失败:', error);
                 alert('入库失败');
+            } finally {
+                isSubmitting = false;
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i>提交入库';
+                }
             }
         });
 

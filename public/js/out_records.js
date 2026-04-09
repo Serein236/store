@@ -85,7 +85,19 @@ async function loadOutRecords() {
             throw new Error('加载出库记录失败');
         }
         
-        const outRecords = await response.json();
+        let outRecords = await response.json();
+        
+        // 获取月份筛选条件
+        const filterMonth = document.getElementById('filterMonth')?.value;
+        
+        // 按月份筛选
+        if (filterMonth) {
+            outRecords = outRecords.filter(record => {
+                if (!record.recorded_date) return false;
+                const recordMonth = record.recorded_date.substring(0, 7); // 获取YYYY-MM格式
+                return recordMonth === filterMonth;
+            });
+        }
         
         // 隐藏加载状态
         loadingDiv.classList.add('d-none');
@@ -152,10 +164,31 @@ async function loadOutRecords() {
     }
 }
 
+// 清除月份筛选
+function clearMonthFilter() {
+    const filterMonth = document.getElementById('filterMonth');
+    if (filterMonth) {
+        filterMonth.value = '';
+    }
+    loadOutRecords();
+}
+
 // 初始化页面
 async function initOutRecordsPage() {
     // 初始化公共部分
     await recordsCommon.initPage();
+    
+    // 处理URL参数中的月份筛选
+    const urlParams = new URLSearchParams(window.location.search);
+    const monthParam = urlParams.get('month');
+    if (monthParam) {
+        const filterMonth = document.getElementById('filterMonth');
+        if (filterMonth) {
+            filterMonth.value = monthParam;
+        }
+        // 清除URL参数
+        window.history.replaceState({}, '', window.location.pathname);
+    }
     
     // 加载出库记录
     await loadOutRecords();
@@ -471,209 +504,152 @@ async function exportOutOrder(recordId) {
         let csvContent = `data:text/csv;charset=utf-8,\uFEFF,,武没市明睿康星物料技有限公司销售出库单,,,,,,\n\n,,,,单号：${orderNumber},转入单号：,,\n开单日期：,${formattedDate},客户名称：,${record.destination || '-'},生产厂家：,${manufacturer},,,\n收货人：,${consignee},收货地址：,${consigneeAddress},收货联系电话：,${consigneePhone},,,\n\n序号,产品编码,品牌,品名,产品规格,单位,数量,单价,金额/元,产品批号,生产日期,有效期,零售价,备注\n1,${productCode},,${record.product_name},${spec},${unit},${record.quantity},${parseFloat(record.unit_price).toFixed(2)},${parseFloat(record.total_amount).toFixed(2)},${record.batch_number || '-'},${formattedProductionDate},${formattedExpirationDate},${formattedRetailPrice},${record.remark || '-'}\n\n合计金额人民币（小写）：,,,,,,,,${parseFloat(record.total_amount).toFixed(2)},共 1 件,,\n合计金额人民币（大写）：,,,,,,,,${numToChinese(parseFloat(record.total_amount))},,,\n\n制单人：,,审核人：,,销售负责人：,,客户收货人：,,\n\n（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）,,,,,,\n注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好,,,,,,`;
         
         try {
-            // 首先检查XLSX API是否可用
-            console.log('检查XLSX API:');
-            console.log('XLSX:', typeof XLSX);
-            console.log('XLSX.utils:', typeof XLSX?.utils);
-            console.log('XLSX.utils.book_new:', typeof XLSX?.utils?.book_new);
-            console.log('XLSX.writeFile:', typeof XLSX?.writeFile);
-            
-            if (XLSX && XLSX.utils && XLSX.utils.book_new && XLSX.writeFile) {
+            // 使用ExcelJS导出
+            if (typeof ExcelJS !== 'undefined') {
                 // 创建工作簿
-                const wb = XLSX.utils.book_new();
-                
-                // 创建工作表数据
-                const wsData = [];
-                
-                // 添加标题行
-                wsData.push(['', '', '', '', '武没市明睿康星物料技有限公司销售出库单']);
-                wsData.push([]);
-                wsData.push([`单号：${orderNumber}`, '', '', '', '', '', '', '', '', '', '', `转入单号：`]);
-                wsData.push(['开单日期：', formattedDate, '', '客户名称：', record.destination || '-', '', '', '', '生产厂家：', manufacturer]);
-                wsData.push(['收货人：', consignee, '', '收货地址：', consigneeAddress, '', '', '', '收货联系电话：', consigneePhone]);
-                wsData.push([]);
-                
-                // 添加表头
-                wsData.push(['序号', '产品编码', '品名', '产品规格', '单位', '数量', '单价', '金额/元', '产品批号', '生产日期', '有效期', '零售价', '备注']);
-                
-                // 添加数据行
-                wsData.push(['1', productCode, record.product_name, spec, unit, record.quantity, parseFloat(record.unit_price).toFixed(2), parseFloat(record.total_amount).toFixed(2), record.batch_number || '-', formattedProductionDate, formattedExpirationDate, formattedRetailPrice, record.remark || '-']);
-                wsData.push([]);
-                
-                // 添加合计行
-                wsData.push(['合计金额人民币（小写）：', '', '', '', '', '', '', '', parseFloat(record.total_amount).toFixed(2), '', '', '', '共 1 件']);
-                wsData.push(['合计金额人民币（大写）：', '', '', '', '', '', '', '', numToChinese(parseFloat(record.total_amount))]);
-                wsData.push([]);
-                
-                // 添加制单人等信息
-                wsData.push(['制单人：', '-', '', '审核人：', '-', '', '销售负责人：', '-', '', '客户收货人：', '-']);
-                wsData.push([]);
-                
-                // 添加备注信息
-                wsData.push(['（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）']);
-                wsData.push(['注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好']);
-                
-                // 创建工作表
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('销售出库单');
                 
                 // 设置列宽
-                ws['!cols'] = [
-                    {wch: 8},  // 序号
-                    {wch: 12}, // 产品编码
-                    {wch: 16}, // 品名
-                    {wch: 12}, // 产品规格
-                    {wch: 8},  // 单位
-                    {wch: 8},  // 数量
-                    {wch: 8},  // 单价
-                    {wch: 10}, // 金额/元
-                    {wch: 12}, // 产品批号
-                    {wch: 12}, // 生产日期
-                    {wch: 12}, // 有效期
-                    {wch: 10}, // 零售价
-                    {wch: 16}  // 备注
+                worksheet.columns = [
+                    { width: 8 },   // A: 序号
+                    { width: 12 },  // B: 产品编码
+                    { width: 16 },  // C: 品名
+                    { width: 12 },  // D: 产品规格
+                    { width: 8 },   // E: 单位
+                    { width: 8 },   // F: 数量
+                    { width: 8 },   // G: 单价
+                    { width: 10 },  // H: 金额/元
+                    { width: 12 },  // I: 产品批号
+                    { width: 12 },  // J: 生产日期
+                    { width: 12 },  // K: 有效期
+                    { width: 10 },  // L: 零售价
+                    { width: 16 }   // M: 备注
                 ];
                 
-                // 设置标题行样式
-                if (ws['E1']) {
-                    ws['E1'].s = {
-                        font: {
-                            name: '黑体',
-                            sz: 24,
-                            bold: true,
-                            color: {
-                                rgb: '000000'
-                            }
-                        },
-                        alignment: {
-                            horizontal: 'center',
-                            vertical: 'center'
-                        },
-                        fill: {
-                            type: 'pattern',
-                            patternType: 'solid',
-                            fgColor: {
-                                rgb: 'F2F2F2'
-                            }
-                        }
+                // 添加标题行（第1行）
+                const titleRow = worksheet.addRow(['武没市明睿康星物料技有限公司销售出库单']);
+                worksheet.mergeCells('A1:M1');
+                const titleCell = worksheet.getCell('A1');
+                titleCell.font = { name: '黑体', size: 20, bold: true };
+                titleCell.alignment = { horizontal: 'center', vertical: 'center' };
+                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+                worksheet.getRow(1).height = 35;
+                
+                // 空行（第2行）
+                worksheet.addRow([]);
+                
+                // 单号行（第3行）
+                worksheet.addRow([`单号：${orderNumber}`, '', '', '', '', '', '', '', '', '', '', '转入单号：', '']);
+                worksheet.mergeCells('A3:D3');
+                worksheet.mergeCells('L3:M3');
+                
+                // 开单日期行（第4行）
+                worksheet.addRow(['开单日期：', formattedDate, '', '客户名称：', record.destination || '-', '', '', '', '生产厂家：', manufacturer, '', '', '']);
+                worksheet.mergeCells('A4:B4');
+                worksheet.mergeCells('E4:H4');
+                worksheet.mergeCells('J4:M4');
+                
+                // 收货人行（第5行）
+                worksheet.addRow(['收货人：', consignee, '', '收货地址：', consigneeAddress, '', '', '', '收货联系电话：', consigneePhone, '', '', '']);
+                worksheet.mergeCells('A5:B5');
+                worksheet.mergeCells('E5:H5');
+                worksheet.mergeCells('J5:M5');
+                
+                // 空行（第6行）
+                worksheet.addRow([]);
+                
+                // 表头行（第7行）
+                const headerRow = worksheet.addRow(['序号', '产品编码', '品名', '产品规格', '单位', '数量', '单价', '金额/元', '产品批号', '生产日期', '有效期', '零售价', '备注']);
+                headerRow.eachCell((cell) => {
+                    cell.font = { name: '宋体', size: 11, bold: true };
+                    cell.alignment = { horizontal: 'center', vertical: 'center' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6E6E6' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF000000' } },
+                        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                        left: { style: 'thin', color: { argb: 'FF000000' } },
+                        right: { style: 'thin', color: { argb: 'FF000000' } }
                     };
-                }
-                
-                // 设置表头样式
-                const headers = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4', 'L4', 'M4'];
-                headers.forEach(cell => {
-                    if (ws[cell]) {
-                        ws[cell].s = {
-                            font: {
-                                name: '宋体',
-                                sz: 12,
-                                bold: true,
-                                color: {
-                                    rgb: '000000'
-                                }
-                            },
-                            alignment: {
-                                horizontal: 'center',
-                                vertical: 'center'
-                            },
-                            fill: {
-                                type: 'pattern',
-                                patternType: 'solid',
-                                fgColor: {
-                                    rgb: 'E6E6E6'
-                                }
-                            },
-                            border: {
-                                top: {style: 'thin', color: {rgb: '000000'}},
-                                bottom: {style: 'thin', color: {rgb: '000000'}},
-                                left: {style: 'thin', color: {rgb: '000000'}},
-                                right: {style: 'thin', color: {rgb: '000000'}}
-                            }
-                        };
-                    }
                 });
                 
-                // 动态设置数据行样式
-                const startDataRow = 5; // 数据行开始行号
-                const endDataRow = startDataRow + 1 - 1; // 数据行结束行号（单个记录）
-                
-                for (let row = startDataRow; row <= endDataRow; row++) {
-                    const cells = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M'].map(col => col + row);
-                    cells.forEach(cell => {
-                        if (ws[cell]) {
-                            ws[cell].s = {
-                                font: {
-                                    name: '宋体',
-                                    sz: 11,
-                                    color: {
-                                        rgb: '000000'
-                                    }
-                                },
-                                alignment: {
-                                    horizontal: 'center',
-                                    vertical: 'center'
-                                },
-                                border: {
-                                    top: {style: 'thin', color: {rgb: '000000'}},
-                                    bottom: {style: 'thin', color: {rgb: '000000'}},
-                                    left: {style: 'thin', color: {rgb: '000000'}},
-                                    right: {style: 'thin', color: {rgb: '000000'}}
-                                }
-                            };
-                        }
-                    });
-                }
-                
-                // 动态设置合计行样式
-                const totalRow1 = endDataRow + 2; // 合计行1（小写金额）
-                const totalRow2 = totalRow1 + 1; // 合计行2（大写金额）
-                
-                const totalCells = [
-                    'A' + totalRow1, // 合计金额人民币（小写）
-                    'H' + totalRow1, // 小写金额值
-                    'M' + totalRow1, // 共X件
-                    'A' + totalRow2  // 合计金额人民币（大写）
-                ];
-                
-                totalCells.forEach(cell => {
-                    if (ws[cell]) {
-                        ws[cell].s = {
-                            font: {
-                                name: '宋体',
-                                sz: 12,
-                                bold: true,
-                                color: {
-                                    rgb: '000000'
-                                }
-                            },
-                            alignment: {
-                                horizontal: 'left',
-                                vertical: 'center'
-                            }
-                        };
-                    }
+                // 数据行（第8行）
+                const dataRow = worksheet.addRow([
+                    1, productCode, record.product_name, spec, unit, record.quantity, 
+                    parseFloat(record.unit_price).toFixed(2), parseFloat(record.total_amount).toFixed(2), 
+                    record.batch_number || '-', formattedProductionDate, formattedExpirationDate, 
+                    formattedRetailPrice, record.remark || '-'
+                ]);
+                dataRow.eachCell((cell) => {
+                    cell.font = { name: '宋体', size: 10 };
+                    cell.alignment = { horizontal: 'center', vertical: 'center' };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF000000' } },
+                        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                        left: { style: 'thin', color: { argb: 'FF000000' } },
+                        right: { style: 'thin', color: { argb: 'FF000000' } }
+                    };
                 });
                 
-                // 将工作表添加到工作簿
-                XLSX.utils.book_append_sheet(wb, ws, '销售出库单');
+                // 空行（第9行）
+                worksheet.addRow([]);
                 
-                // 使用SheetJS导出Excel文件
-                try {
-                    // 直接使用XLSX.writeFile方法
-                    XLSX.writeFile(wb, `销售出库单_${orderNumber}.xlsx`);
-                } catch (writeError) {
-                    console.error('Excel导出失败，使用CSV导出:', writeError);
-                    // 如果Excel导出失败，使用CSV导出作为备用
-                    const encodedUri = encodeURI(csvContent);
-                    const link = document.createElement('a');
-                    link.setAttribute('href', encodedUri);
-                    link.setAttribute('download', `销售出库单_${orderNumber}.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
+                // 合计行（第10行）
+                const totalRow1 = worksheet.addRow(['合计金额人民币（小写）：', '', '', '', '', '', '', '', parseFloat(record.total_amount).toFixed(2), '', '', '共 1 件', '']);
+                worksheet.mergeCells('A10:H10');
+                worksheet.mergeCells('J10:K10');
+                totalRow1.getCell('A').font = { name: '宋体', size: 11, bold: true };
+                totalRow1.getCell('I').font = { name: '宋体', size: 11, bold: true };
+                totalRow1.getCell('I').alignment = { horizontal: 'center' };
+                
+                // 大写金额行（第11行）
+                const totalRow2 = worksheet.addRow(['合计金额人民币（大写）：', '', '', '', '', '', '', '', numToChinese(parseFloat(record.total_amount)), '', '', '', '']);
+                worksheet.mergeCells('A11:H11');
+                worksheet.mergeCells('I11:M11');
+                totalRow2.getCell('A').font = { name: '宋体', size: 11, bold: true };
+                totalRow2.getCell('I').font = { name: '宋体', size: 11, bold: true };
+                
+                // 空行（第12行）
+                worksheet.addRow([]);
+                
+                // 制单人信息行（第13行）
+                worksheet.addRow(['制单人：', '-', '', '审核人：', '-', '', '销售负责人：', '-', '', '客户收货人：', '-', '', '']);
+                worksheet.mergeCells('A13:B13');
+                worksheet.mergeCells('D13:E13');
+                worksheet.mergeCells('G13:H13');
+                worksheet.mergeCells('J13:K13');
+                
+                // 空行（第14行）
+                worksheet.addRow([]);
+                
+                // 备注行（第15行）
+                const noteRow = worksheet.addRow(['（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）', '', '', '', '', '', '', '', '', '', '', '', '']);
+                worksheet.mergeCells('A15:M15');
+                noteRow.getCell('A').alignment = { horizontal: 'left' };
+                
+                // 注意事项行（第16行）
+                const tipRow = worksheet.addRow(['注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好', '', '', '', '', '', '', '', '', '', '', '', '']);
+                worksheet.mergeCells('A16:M16');
+                tipRow.getCell('A').alignment = { horizontal: 'left', wrapText: true };
+                worksheet.getRow(16).height = 30;
+                
+                // 设置行高
+                worksheet.getRow(1).height = 35;
+                worksheet.getRow(7).height = 25;
+                
+                // 导出Excel文件
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `销售出库单_${orderNumber}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
             } else {
-                // 如果Excel导出API不可用，使用CSV导出作为备用
-                console.warn('Excel导出API不可用，使用CSV导出');
+                // 如果ExcelJS不可用，使用CSV导出作为备用
+                console.warn('ExcelJS不可用，使用CSV导出');
                 
                 // 创建CSV下载链接
                 const encodedUri = encodeURI(csvContent);
@@ -1034,26 +1010,76 @@ async function confirmBatchExport() {
         csvContent += `\n合计金额人民币（小写）：,,,,,,,,${totalAmount.toFixed(2)},共 ${records.length} 件,,\n合计金额人民币（大写）：,,,,,,,,${numToChinese(totalAmount)},,,\n\n制单人：,,审核人：,,销售负责人：,,客户收货人：,,\n\n（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）,,,,,,\n注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好,,,,,,`;
         
         try {
-            // 首先检查XLSX API是否可用
-            if (XLSX && XLSX.utils && XLSX.utils.book_new && XLSX.writeFile) {
+            // 使用ExcelJS导出
+            if (typeof ExcelJS !== 'undefined') {
                 // 创建工作簿
-                const wb = XLSX.utils.book_new();
+                const workbook = new ExcelJS.Workbook();
+                const worksheet = workbook.addWorksheet('销售出库单');
                 
-                // 创建工作表数据
-                const wsData = [];
+                // 设置列宽
+                worksheet.columns = [
+                    { width: 8 },   // A: 序号
+                    { width: 12 },  // B: 产品编码
+                    { width: 16 },  // C: 品名
+                    { width: 12 },  // D: 产品规格
+                    { width: 8 },   // E: 单位
+                    { width: 8 },   // F: 数量
+                    { width: 8 },   // G: 单价
+                    { width: 10 },  // H: 金额/元
+                    { width: 12 },  // I: 产品批号
+                    { width: 12 },  // J: 生产日期
+                    { width: 12 },  // K: 有效期
+                    { width: 10 },  // L: 零售价
+                    { width: 16 }   // M: 备注
+                ];
                 
-                // 添加标题行
-                wsData.push(['', '', '', '', '武没市明睿康星物料技有限公司销售出库单']);
-                wsData.push([]);
-                wsData.push([`单号：${orderNumber}`, '', '', '', '', '', '', '', '', '', '', `转入单号：`]);
-                wsData.push(['开单日期：', firstRecord.display_date ? formatDate(firstRecord.display_date) : '-', '', '客户名称：', firstRecord.destination || '-', '', '', '', '生产厂家：', '-']);
-                wsData.push(['收货人：', consignee, '', '收货地址：', consigneeAddress, '', '', '', '收货联系电话：', consigneePhone]);
-                wsData.push([]);
+                // 添加标题行（第1行）
+                const titleRow = worksheet.addRow(['武没市明睿康星物料技有限公司销售出库单']);
+                worksheet.mergeCells('A1:M1');
+                const titleCell = worksheet.getCell('A1');
+                titleCell.font = { name: '黑体', size: 20, bold: true };
+                titleCell.alignment = { horizontal: 'center', vertical: 'center' };
+                titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+                worksheet.getRow(1).height = 35;
                 
-                // 添加表头
-                wsData.push(['序号', '产品编码', '品名', '产品规格', '单位', '数量', '单价', '金额/元', '产品批号', '生产日期', '有效期', '零售价', '备注']);
+                // 空行（第2行）
+                worksheet.addRow([]);
                 
-                // 添加数据行
+                // 单号行（第3行）
+                worksheet.addRow([`单号：${orderNumber}`, '', '', '', '', '', '', '', '', '', '', '转入单号：', '']);
+                worksheet.mergeCells('A3:D3');
+                worksheet.mergeCells('L3:M3');
+                
+                // 开单日期行（第4行）
+                worksheet.addRow(['开单日期：', firstRecord.display_date ? formatDate(firstRecord.display_date) : '-', '', '客户名称：', firstRecord.destination || '-', '', '', '', '生产厂家：', '-', '', '', '']);
+                worksheet.mergeCells('A4:B4');
+                worksheet.mergeCells('E4:H4');
+                worksheet.mergeCells('J4:M4');
+                
+                // 收货人行（第5行）
+                worksheet.addRow(['收货人：', consignee, '', '收货地址：', consigneeAddress, '', '', '', '收货联系电话：', consigneePhone, '', '', '']);
+                worksheet.mergeCells('A5:B5');
+                worksheet.mergeCells('E5:H5');
+                worksheet.mergeCells('J5:M5');
+                
+                // 空行（第6行）
+                worksheet.addRow([]);
+                
+                // 表头行（第7行）
+                const headerRow = worksheet.addRow(['序号', '产品编码', '品名', '产品规格', '单位', '数量', '单价', '金额/元', '产品批号', '生产日期', '有效期', '零售价', '备注']);
+                headerRow.eachCell((cell) => {
+                    cell.font = { name: '宋体', size: 11, bold: true };
+                    cell.alignment = { horizontal: 'center', vertical: 'center' };
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE6E6E6' } };
+                    cell.border = {
+                        top: { style: 'thin', color: { argb: 'FF000000' } },
+                        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                        left: { style: 'thin', color: { argb: 'FF000000' } },
+                        right: { style: 'thin', color: { argb: 'FF000000' } }
+                    };
+                });
+                
+                // 数据行（从第8行开始）
                 records.forEach((record, index) => {
                     const productCode = record.product_code || '-';
                     const spec = record.spec || '-';
@@ -1062,7 +1088,7 @@ async function confirmBatchExport() {
                     const expirationDate = record.expiration_date ? formatDate(record.expiration_date) : '-';
                     const retailPrice = record.retail_price ? parseFloat(record.retail_price).toFixed(2) : '-';
                     
-                    wsData.push([
+                    const dataRow = worksheet.addRow([
                         index + 1,
                         productCode,
                         record.product_name,
@@ -1077,170 +1103,75 @@ async function confirmBatchExport() {
                         retailPrice,
                         record.remark || '-'
                     ]);
-                });
-                
-                wsData.push([]);
-                
-                // 添加合计行
-                wsData.push(['合计金额人民币（小写）：', '', '', '', '', '', '', '', totalAmount.toFixed(2), '', '', '', `共 ${records.length} 件`]);
-                wsData.push(['合计金额人民币（大写）：', '', '', '', '', '', '', '', numToChinese(totalAmount)]);
-                wsData.push([]);
-                
-                // 添加制单人等信息
-                wsData.push(['制单人：', '-', '', '审核人：', '-', '', '销售负责人：', '-', '', '客户收货人：', '-']);
-                wsData.push([]);
-                
-                // 添加备注信息
-                wsData.push(['（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）']);
-                wsData.push(['注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好']);
-                
-                // 创建工作表
-                const ws = XLSX.utils.aoa_to_sheet(wsData);
-                
-                // 设置列宽
-                ws['!cols'] = [
-                    {wch: 8},  // 序号
-                    {wch: 12}, // 产品编码
-                    {wch: 16}, // 品名
-                    {wch: 12}, // 产品规格
-                    {wch: 8},  // 单位
-                    {wch: 8},  // 数量
-                    {wch: 8},  // 单价
-                    {wch: 10}, // 金额/元
-                    {wch: 12}, // 产品批号
-                    {wch: 12}, // 生产日期
-                    {wch: 12}, // 有效期
-                    {wch: 10}, // 零售价
-                    {wch: 16}  // 备注
-                ];
-                
-                // 设置标题行样式
-                if (ws['E1']) {
-                    ws['E1'].s = {
-                        font: {
-                            name: '黑体',
-                            sz: 24,
-                            bold: true,
-                            color: {
-                                rgb: '000000'
-                            }
-                        },
-                        alignment: {
-                            horizontal: 'center',
-                            vertical: 'center'
-                        },
-                        fill: {
-                            type: 'pattern',
-                            patternType: 'solid',
-                            fgColor: {
-                                rgb: 'F2F2F2'
-                            }
-                        }
-                    };
-                }
-                
-                // 设置表头样式
-                const headers = ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4', 'H4', 'I4', 'J4', 'K4', 'L4', 'M4'];
-                headers.forEach(cell => {
-                    if (ws[cell]) {
-                        ws[cell].s = {
-                            font: {
-                                name: '宋体',
-                                sz: 12,
-                                bold: true,
-                                color: {
-                                    rgb: '000000'
-                                }
-                            },
-                            alignment: {
-                                horizontal: 'center',
-                                vertical: 'center'
-                            },
-                            fill: {
-                                type: 'pattern',
-                                patternType: 'solid',
-                                fgColor: {
-                                    rgb: 'E6E6E6'
-                                }
-                            },
-                            border: {
-                                top: {style: 'thin', color: {rgb: '000000'}},
-                                bottom: {style: 'thin', color: {rgb: '000000'}},
-                                left: {style: 'thin', color: {rgb: '000000'}},
-                                right: {style: 'thin', color: {rgb: '000000'}}
-                            }
+                    dataRow.eachCell((cell) => {
+                        cell.font = { name: '宋体', size: 10 };
+                        cell.alignment = { horizontal: 'center', vertical: 'center' };
+                        cell.border = {
+                            top: { style: 'thin', color: { argb: 'FF000000' } },
+                            bottom: { style: 'thin', color: { argb: 'FF000000' } },
+                            left: { style: 'thin', color: { argb: 'FF000000' } },
+                            right: { style: 'thin', color: { argb: 'FF000000' } }
                         };
-                    }
-                });
-                
-                // 设置数据行样式
-                for (let i = 5; i < 5 + records.length; i++) {
-                    const dataRow = [`A${i}`, `B${i}`, `C${i}`, `D${i}`, `E${i}`, `F${i}`, `G${i}`, `H${i}`, `I${i}`, `J${i}`, `K${i}`, `L${i}`, `M${i}`];
-                    dataRow.forEach(cell => {
-                        if (ws[cell]) {
-                            ws[cell].s = {
-                                font: {
-                                    name: '宋体',
-                                    sz: 11,
-                                    color: {
-                                        rgb: '000000'
-                                    }
-                                },
-                                alignment: {
-                                    horizontal: 'center',
-                                    vertical: 'center'
-                                },
-                                border: {
-                                    top: {style: 'thin', color: {rgb: '000000'}},
-                                    bottom: {style: 'thin', color: {rgb: '000000'}},
-                                    left: {style: 'thin', color: {rgb: '000000'}},
-                                    right: {style: 'thin', color: {rgb: '000000'}}
-                                }
-                            };
-                        }
                     });
-                }
-                
-                // 设置合计行样式
-                const totalRow = 5 + records.length; // 5是表头行位置，加上记录数量
-                const totalCells = [`A${totalRow}`, `I${totalRow}`, `M${totalRow}`, `A${totalRow + 1}`];
-                totalCells.forEach(cell => {
-                    if (ws[cell]) {
-                        ws[cell].s = {
-                            font: {
-                                name: '宋体',
-                                sz: 12,
-                                bold: true,
-                                color: {
-                                    rgb: '000000'
-                                }
-                            },
-                            alignment: {
-                                horizontal: 'left',
-                                vertical: 'center'
-                            }
-                        };
-                    }
                 });
                 
-                // 将工作表添加到工作簿
-                XLSX.utils.book_append_sheet(wb, ws, '销售出库单');
+                // 空行
+                worksheet.addRow([]);
                 
-                // 使用SheetJS导出Excel文件
-                try {
-                    // 直接使用XLSX.writeFile方法
-                    XLSX.writeFile(wb, `销售出库单_${orderNumber}.xlsx`);
-                } catch (writeError) {
-                    console.error('Excel导出失败，使用CSV导出:', writeError);
-                    // 如果Excel导出失败，使用CSV导出作为备用
-                    const encodedUri = encodeURI(csvContent);
-                    const link = document.createElement('a');
-                    link.setAttribute('href', encodedUri);
-                    link.setAttribute('download', `销售出库单_${orderNumber}.csv`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                }
+                // 合计行
+                const dataEndRow = 7 + records.length;
+                const totalRow1 = worksheet.addRow(['合计金额人民币（小写）：', '', '', '', '', '', '', '', totalAmount.toFixed(2), '', '', `共 ${records.length} 件`, '']);
+                worksheet.mergeCells(`A${dataEndRow + 1}:H${dataEndRow + 1}`);
+                worksheet.mergeCells(`J${dataEndRow + 1}:K${dataEndRow + 1}`);
+                totalRow1.getCell('A').font = { name: '宋体', size: 11, bold: true };
+                totalRow1.getCell('I').font = { name: '宋体', size: 11, bold: true };
+                totalRow1.getCell('I').alignment = { horizontal: 'center' };
+                
+                // 大写金额行
+                const totalRow2 = worksheet.addRow(['合计金额人民币（大写）：', '', '', '', '', '', '', '', numToChinese(totalAmount), '', '', '', '']);
+                worksheet.mergeCells(`A${dataEndRow + 2}:H${dataEndRow + 2}`);
+                worksheet.mergeCells(`I${dataEndRow + 2}:M${dataEndRow + 2}`);
+                totalRow2.getCell('A').font = { name: '宋体', size: 11, bold: true };
+                totalRow2.getCell('I').font = { name: '宋体', size: 11, bold: true };
+                
+                // 空行
+                worksheet.addRow([]);
+                
+                // 制单人信息行
+                const signRow = worksheet.addRow(['制单人：', '-', '', '审核人：', '-', '', '销售负责人：', '-', '', '客户收货人：', '-', '', '']);
+                worksheet.mergeCells(`A${dataEndRow + 4}:B${dataEndRow + 4}`);
+                worksheet.mergeCells(`D${dataEndRow + 4}:E${dataEndRow + 4}`);
+                worksheet.mergeCells(`G${dataEndRow + 4}:H${dataEndRow + 4}`);
+                worksheet.mergeCells(`J${dataEndRow + 4}:K${dataEndRow + 4}`);
+                
+                // 空行
+                worksheet.addRow([]);
+                
+                // 备注行
+                const noteRow = worksheet.addRow(['（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）', '', '', '', '', '', '', '', '', '', '', '', '']);
+                worksheet.mergeCells(`A${dataEndRow + 6}:M${dataEndRow + 6}`);
+                noteRow.getCell('A').alignment = { horizontal: 'left' };
+                
+                // 注意事项行
+                const tipRow = worksheet.addRow(['注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好', '', '', '', '', '', '', '', '', '', '', '', '']);
+                worksheet.mergeCells(`A${dataEndRow + 7}:M${dataEndRow + 7}`);
+                tipRow.getCell('A').alignment = { horizontal: 'left', wrapText: true };
+                worksheet.getRow(dataEndRow + 7).height = 30;
+                
+                // 设置行高
+                worksheet.getRow(1).height = 35;
+                worksheet.getRow(7).height = 25;
+                
+                // 导出Excel文件
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `销售出库单_${orderNumber}.xlsx`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(link.href);
             } else {
                 // 如果Excel导出API不可用，使用CSV导出作为备用
                 console.warn('Excel导出API不可用，使用CSV导出');

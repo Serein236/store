@@ -32,7 +32,7 @@ async function checkLogin() {
                 const products = await response.json();
 
                 const select = document.getElementById('productId');
-                select.innerHTML = '<option value="">请选择商品</option>';
+                select.innerHTML = '<option value="">请选择商品（可选）</option>';
 
                 products.forEach(product => {
                     const option = document.createElement('option');
@@ -49,11 +49,19 @@ async function checkLogin() {
             const productId = document.getElementById('productId').value;
             const month = document.getElementById('queryMonth').value;
 
-            if (!productId) {
-                alert('请选择商品');
+            // 两个条件都为空时，跳转至出库记录页面
+            if (!productId && !month) {
+                window.location.href = 'out_records.html';
                 return;
             }
 
+            // 只选月份不选商品时，跳转至出库记录页面并带上月份参数
+            if (!productId && month) {
+                window.location.href = `out_records.html?month=${month}`;
+                return;
+            }
+
+            // 只选商品时，执行原有查询逻辑
             try {
                 let url = `/api/query/${productId}`;
                 if (month) {

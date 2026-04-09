@@ -316,17 +316,20 @@ async function checkLogin() {
             const destinationInput = document.getElementById('destination');
             const suggestionsContainer = document.getElementById('customerSuggestions');
             let debounceTimer;
+            let selectedIndex = -1;
+            let currentCustomers = [];
 
             destinationInput.addEventListener('input', function() {
                 clearTimeout(debounceTimer);
+                selectedIndex = -1;
                 const query = this.value.trim();
 
                 if (query.length >= 2) {
                     debounceTimer = setTimeout(async () => {
                         try {
                             const response = await fetch(`/api/customers?query=${encodeURIComponent(query)}`);
-                            const customers = await response.json();
-                            showCustomerSuggestions(customers);
+                            currentCustomers = await response.json();
+                            showCustomerSuggestions(currentCustomers);
                         } catch (error) {
                             console.error('获取客户列表失败:', error);
                             hideCustomerSuggestions();
@@ -337,17 +340,66 @@ async function checkLogin() {
                 }
             });
 
+            // 键盘导航
+            destinationInput.addEventListener('keydown', function(e) {
+                const items = suggestionsContainer.querySelectorAll('.suggestion-item');
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        selectedIndex = (selectedIndex + 1) % items.length;
+                        updateSelection(items);
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (items.length > 0) {
+                        selectedIndex = selectedIndex <= 0 ? items.length - 1 : selectedIndex - 1;
+                        updateSelection(items);
+                    }
+                } else if (e.key === 'Enter') {
+                    if (selectedIndex >= 0 && items[selectedIndex]) {
+                        e.preventDefault();
+                        items[selectedIndex].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    hideCustomerSuggestions();
+                }
+            });
+
+            function updateSelection(items) {
+                items.forEach((item, index) => {
+                    if (index === selectedIndex) {
+                        item.classList.add('active');
+                        item.style.backgroundColor = '#e9ecef';
+                    } else {
+                        item.classList.remove('active');
+                        item.style.backgroundColor = '';
+                    }
+                });
+            }
+
             function showCustomerSuggestions(customers) {
                 suggestionsContainer.innerHTML = '';
+                selectedIndex = -1;
                 if (customers.length > 0) {
-                    customers.forEach(customer => {
+                    customers.forEach((customer, index) => {
                         const suggestionItem = document.createElement('div');
-                        suggestionItem.className = 'p-2 hover:bg-light cursor-pointer';
+                        suggestionItem.className = 'suggestion-item p-2 cursor-pointer';
+                        suggestionItem.style.borderBottom = '1px solid #f0f0f0';
+                        suggestionItem.style.transition = 'background-color 0.15s';
                         suggestionItem.textContent = customer;
+                        suggestionItem.dataset.index = index;
+
+                        suggestionItem.addEventListener('mouseenter', () => {
+                            selectedIndex = index;
+                            updateSelection(suggestionsContainer.querySelectorAll('.suggestion-item'));
+                        });
+
                         suggestionItem.addEventListener('click', () => {
                             destinationInput.value = customer;
                             hideCustomerSuggestions();
                         });
+
                         suggestionsContainer.appendChild(suggestionItem);
                     });
                     suggestionsContainer.classList.remove('d-none');
@@ -358,6 +410,8 @@ async function checkLogin() {
 
             function hideCustomerSuggestions() {
                 suggestionsContainer.classList.add('d-none');
+                selectedIndex = -1;
+                currentCustomers = [];
             }
 
             // 点击页面其他地方关闭建议列表

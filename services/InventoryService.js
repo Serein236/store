@@ -4,6 +4,13 @@ const InRecordModel = require('../models/InRecordModel');
 const OutRecordModel = require('../models/OutRecordModel');
 const StockModel = require('../models/StockModel');
 const dbUtils = require('../utils/dbUtils');
+const fs = require('fs').promises;
+const fsSync = require('fs');
+const path = require('path');
+const { exec } = require('child_process');
+const util = require('util');
+const execPromise = util.promisify(exec);
+const bcrypt = require('bcryptjs');
 
 const InventoryService = {
     async inStock(data) {
@@ -357,6 +364,145 @@ const InventoryService = {
             console.error('保存设置失败:', error);
             throw error;
         }
+    },
+
+    // 创建备份
+    async createBackup(createdBy) {
+        const backupDir = path.join(process.cwd(), 'backup');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const fileName = `warehouse_backup_${timestamp}.sql`;
+        const filePath = path.join(backupDir, fileName);
+
+        // 确保备份目录存在
+        if (!fsSync.existsSync(backupDir)) {
+            fsSync.mkdirSync(backupDir, { recursive: true });
+        }
+
+        // 从环境变量获取数据库配置或使用默认值
+        const dbHost = process.env.DB_HOST || 'localhost';
+        const dbUser = process.env.DB_USER || 'root';
+        const dbPassword = process.env.DB_PASSWORD || '';
+        const dbName = process.env.DB_NAME || 'warehouse';
+
+        // 执行 mysqldump
+        const passwordPart = dbPassword ? `-p"${dbPassword}"` : '';
+        const command = `mysqldump -h ${dbHost} -u ${dbUser} ${passwordPart} ${dbName} > "${filePath}"`;
+
+        try {
+            await execPromise(command);
+
+            // 获取文件大小
+            const stats = fsSync.statSync(filePath);
+            const fileSize = (stats.size / 1024 / 1024).toFixed(2); // MB
+
+            // 保存备份记录到数据库
+            await dbUtils.insert(
+                'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at) VALUES (?, ?, ?, ?, NOW())',
+                [fileName, filePath, fileSize, createdBy]
+            );
+
+            return { success: true, fileName, fileSize };
+        } catch (error) {
+            // 如果失败，删除已创建的文件
+            if (fsSync.existsSync(filePath)) {
+                fsSync.unlinkSync(filePath);
+            }
+            throw new Error(`备份失败: ${error.message}`);
+        }
+    },
+
+    // 获取备份列表
+    async getBackupList() {
+        try {
+            const backups = await dbUtils.query(
+                'SELECT id, file_name, file_size, created_by, created_at FROM backups ORDER BY created_at DESC'
+            );
+            return backups || [];
+        } catch (error) {
+            console.error('获取备份列表失败:', error);
+            return [];
+        }
+    },
+
+    // 根据ID获取备份
+    async getBackupById(id) {
+        return await dbUtils.queryOne('SELECT * FROM backups WHERE id = ?', [id]);
+    },
+
+    // 删除备份
+    async deleteBackup(id) {
+        const backup = await this.getBackupById(id);
+        if (!backup) {
+            throw new Error('备份不存在');
+        }
+
+        // 删除文件
+        if (fsSync.existsSync(backup.file_path)) {
+            fsSync.unlinkSync(backup.file_path);
+        }
+
+        // 删除数据库记录
+        await dbUtils.update('DELETE FROM backups WHERE id = ?', [id]);
+        return { success: true };
+    },
+
+    // 恢复备份
+    async restoreBackup(id) {
+        const backup = await this.getBackupById(id);
+        if (!backup) {
+            throw new Error('备份不存在');
+        }
+
+        if (!fsSync.existsSync(backup.file_path)) {
+            throw new Error('备份文件不存在');
+        }
+
+        // 从环境变量获取数据库配置或使用默认值
+        const dbHost = process.env.DB_HOST || 'localhost';
+        const dbUser = process.env.DB_USER || 'root';
+        const dbPassword = process.env.DB_PASSWORD || '';
+        const dbName = process.env.DB_NAME || 'warehouse';
+
+        // 执行恢复
+        const passwordPart = dbPassword ? `-p"${dbPassword}"` : '';
+        const command = `mysql -h ${dbHost} -u ${dbUser} ${passwordPart} ${dbName} < "${backup.file_path}"`;
+
+        await execPromise(command);
+        return { success: true };
+    },
+
+    // 保存自动备份配置
+    async saveAutoBackupConfig(config) {
+        const settings = await this.getSettings() || {};
+        settings.autoBackup = config;
+        return await this.saveSettings(settings);
+    },
+
+    // 修改密码
+    async changePassword(userId, currentPassword, newPassword) {
+        // 获取用户当前密码
+        const user = await dbUtils.queryOne('SELECT password FROM users WHERE id = ?', [userId]);
+        if (!user) {
+            return { success: false, message: '用户不存在' };
+        }
+
+        // 验证当前密码
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
+            return { success: false, message: '当前密码不正确' };
+        }
+
+        // 加密新密码
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // 更新密码
+        await dbUtils.update(
+            'UPDATE users SET password = ? WHERE id = ?',
+            [hashedPassword, userId]
+        );
+
+        return { success: true };
     }
 };
 

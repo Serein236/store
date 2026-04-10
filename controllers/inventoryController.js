@@ -450,6 +450,118 @@ const inventoryController = {
             logger.error('保存设置失败', { username, error: error.message });
             res.status(500).json({ success: false, message: '保存设置失败' });
         }
+    },
+
+    // 创建备份
+    async createBackup(req, res) {
+        const username = req.session?.username || '未登录用户';
+        try {
+            const result = await InventoryService.createBackup(username);
+            res.json(result);
+        } catch (error) {
+            console.error('创建备份错误:', error);
+            logger.error('创建备份失败', { username, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '创建备份失败' });
+        }
+    },
+
+    // 获取备份列表
+    async getBackupList(req, res) {
+        try {
+            const backups = await InventoryService.getBackupList();
+            res.json(backups);
+        } catch (error) {
+            console.error('获取备份列表错误:', error);
+            res.status(500).json({ success: false, message: '获取备份列表失败' });
+        }
+    },
+
+    // 下载备份
+    async downloadBackup(req, res) {
+        const { id } = req.params;
+        try {
+            const backup = await InventoryService.getBackupById(id);
+            if (!backup) {
+                return res.status(404).json({ success: false, message: '备份文件不存在' });
+            }
+            res.download(backup.file_path, backup.file_name);
+        } catch (error) {
+            console.error('下载备份错误:', error);
+            res.status(500).json({ success: false, message: '下载备份失败' });
+        }
+    },
+
+    // 删除备份
+    async deleteBackup(req, res) {
+        const { id } = req.params;
+        const username = req.session?.username || '未登录用户';
+        try {
+            await InventoryService.deleteBackup(id);
+            logger.info('删除备份成功', { username, backupId: id, timestamp: new Date().toISOString() });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('删除备份错误:', error);
+            logger.error('删除备份失败', { username, backupId: id, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '删除备份失败' });
+        }
+    },
+
+    // 恢复备份
+    async restoreBackup(req, res) {
+        const { id } = req.params;
+        const username = req.session?.username || '未登录用户';
+        try {
+            await InventoryService.restoreBackup(id);
+            logger.info('恢复备份成功', { username, backupId: id, timestamp: new Date().toISOString() });
+            res.json({ success: true, message: '数据恢复成功' });
+        } catch (error) {
+            console.error('恢复备份错误:', error);
+            logger.error('恢复备份失败', { username, backupId: id, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '恢复备份失败' });
+        }
+    },
+
+    // 保存自动备份配置
+    async saveAutoBackupConfig(req, res) {
+        const username = req.session?.username || '未登录用户';
+        try {
+            const config = req.body;
+            await InventoryService.saveAutoBackupConfig(config);
+            logger.info('保存自动备份配置成功', { username, timestamp: new Date().toISOString() });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('保存自动备份配置错误:', error);
+            logger.error('保存自动备份配置失败', { username, error: error.message });
+            res.status(500).json({ success: false, message: '保存自动备份配置失败' });
+        }
+    },
+
+    // 修改密码
+    async changePassword(req, res) {
+        const username = req.session?.username;
+        const userId = req.session?.userId;
+        if (!username || !userId) {
+            return res.status(401).json({ success: false, message: '未登录' });
+        }
+
+        const { currentPassword, newPassword } = req.body;
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ success: false, message: '当前密码和新密码不能为空' });
+        }
+
+        try {
+            const result = await InventoryService.changePassword(userId, currentPassword, newPassword);
+            if (result.success) {
+                logger.info('修改密码成功', { username, timestamp: new Date().toISOString() });
+                res.json({ success: true, message: '密码修改成功' });
+            } else {
+                res.status(400).json({ success: false, message: result.message });
+            }
+        } catch (error) {
+            console.error('修改密码错误:', error);
+            logger.error('修改密码失败', { username, error: error.message });
+            res.status(500).json({ success: false, message: '修改密码失败' });
+        }
     }
 };
 

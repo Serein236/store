@@ -178,6 +178,25 @@
                         <button class="btn btn-primary" onclick="saveSecuritySettings()">
                             <i class="bi bi-save me-2"></i>保存安全设置
                         </button>
+
+                        <hr class="my-4">
+
+                        <h6><i class="bi bi-key me-2"></i>修改密码</h6>
+                        <div class="mb-3">
+                            <label for="currentPassword" class="form-label">当前密码</label>
+                            <input type="password" class="form-control" id="currentPassword" placeholder="请输入当前密码">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label">新密码</label>
+                            <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码（至少6位）">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label">确认新密码</label>
+                            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入新密码">
+                        </div>
+                        <button class="btn btn-warning" onclick="changePassword()">
+                            <i class="bi bi-shield-check me-2"></i>修改密码
+                        </button>
                     </div>
                 </div>
             </div>
@@ -189,18 +208,72 @@
                         <i class="bi bi-exclamation-triangle me-2"></i>数据管理
                     </div>
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6>数据备份</h6>
-                                <p class="text-muted">备份所有库存数据、商品信息和出入库记录</p>
-                                <button class="btn btn-outline-primary" onclick="backupData()">
-                                    <i class="bi bi-download me-2"></i>立即备份
+                        <!-- 自动备份设置 -->
+                        <div class="setting-section">
+                            <h6><i class="bi bi-clock-history me-2"></i>自动备份设置</h6>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check form-switch mb-3">
+                                        <input class="form-check-input" type="checkbox" id="autoBackupEnabled">
+                                        <label class="form-check-label" for="autoBackupEnabled">启用自动备份</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="autoBackupFrequency" class="form-label">备份频率</label>
+                                    <select class="form-select" id="autoBackupFrequency">
+                                        <option value="daily">每天</option>
+                                        <option value="weekly">每周</option>
+                                        <option value="monthly">每月</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="backupRetention" class="form-label">保留备份数量</label>
+                                    <input type="number" class="form-control" id="backupRetention" min="1" max="50" value="10">
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-primary btn-sm" onclick="saveAutoBackupConfig()">
+                                <i class="bi bi-save me-1"></i>保存自动备份配置
+                            </button>
+                        </div>
+
+                        <!-- 手动备份和备份列表 -->
+                        <div class="setting-section">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6><i class="bi bi-download me-2"></i>数据备份</h6>
+                                <button class="btn btn-primary" onclick="backupData()">
+                                    <i class="bi bi-plus-circle me-2"></i>立即备份
                                 </button>
                             </div>
-                            <div class="col-md-6">
-                                <h6>数据清理</h6>
-                                <p class="text-muted">清理指定日期之前的出入库记录</p>
-                                <div class="input-group mb-2">
+                            <p class="text-muted">备份文件保存在项目根目录 backup 文件夹中</p>
+
+                            <!-- 备份列表 -->
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>文件名</th>
+                                            <th>大小</th>
+                                            <th>创建者</th>
+                                            <th>创建时间</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="backupListBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div id="backupListEmpty" class="text-center text-muted py-3 d-none">
+                                <i class="bi bi-inbox fs-1"></i>
+                                <p>暂无备份记录</p>
+                            </div>
+                        </div>
+
+                        <!-- 数据清理 -->
+                        <div class="row">
+                            <div class="col-md-12">
+                                <h6><i class="bi bi-trash me-2"></i>数据清理</h6>
+                                <p class="text-muted">清理指定日期之前的出入库记录（此操作不可逆，请谨慎操作）</p>
+                                <div class="input-group mb-2" style="max-width: 400px;">
                                     <input type="date" class="form-control" id="cleanupDate">
                                     <button class="btn btn-outline-danger" onclick="cleanupData()">
                                         <i class="bi bi-trash me-2"></i>清理数据

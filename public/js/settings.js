@@ -78,6 +78,13 @@ function loadSettings() {
         document.getElementById('requirePasswordChange').checked = settings.security.requirePasswordChange || false;
         document.getElementById('loginNotification').checked = settings.security.loginNotification || false;
     }
+
+    // 填充自动备份设置
+    if (settings.autoBackup) {
+        document.getElementById('autoBackupEnabled').checked = settings.autoBackup.enabled || false;
+        document.getElementById('autoBackupFrequency').value = settings.autoBackup.frequency || 'daily';
+        document.getElementById('backupRetention').value = settings.autoBackup.retention || 10;
+    }
 }
 
 // 保存设置到本地存储
@@ -268,9 +275,213 @@ async function logout() {
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
     checkLogin();
+    loadBackupList();
 });
 
 // 获取设置（供其他页面使用）
 window.getWarehouseSettings = function() {
     return getCurrentSettings();
 };
+
+// 修改密码
+async function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        alert('请填写所有密码字段');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        alert('新密码至少需要6位');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        alert('两次输入的新密码不一致');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ currentPassword, newPassword })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('密码修改成功！');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        } else {
+            alert(data.message || '密码修改失败');
+        }
+    } catch (error) {
+        console.error('修改密码失败:', error);
+        alert('修改密码失败: ' + error.message);
+    }
+}
+
+// 加载备份列表
+async function loadBackupList() {
+    try {
+        const response = await fetch('/api/backups');
+        const backups = await response.json();
+
+        const tbody = document.getElementById('backupListBody');
+        const emptyDiv = document.getElementById('backupListEmpty');
+
+        if (!backups || backups.length === 0) {
+            tbody.innerHTML = '';
+            emptyDiv.classList.remove('d-none');
+            return;
+        }
+
+        emptyDiv.classList.add('d-none');
+
+        tbody.innerHTML = backups.map(backup => `
+            <tr>
+                <td>${backup.file_name}</td>
+                <td>${backup.file_size} MB</td>
+                <td>${backup.created_by || '-'}</td>
+                <td>${new Date(backup.created_at).toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="downloadBackup(${backup.id})">
+                        <i class="bi bi-download"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning me-1" onclick="restoreBackup(${backup.id})">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteBackup(${backup.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('加载备份列表失败:', error);
+    }
+}
+
+// 下载备份
+function downloadBackup(id) {
+    window.open(`/api/backups/${id}/download`, '_blank');
+}
+
+// 恢复备份
+async function restoreBackup(id) {
+    if (!confirm('确定要恢复此备份吗？当前数据将被覆盖，请谨慎操作！')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/backups/${id}/restore`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('数据恢复成功！');
+        } else {
+            alert(data.message || '恢复失败');
+        }
+    } catch (error) {
+        console.error('恢复备份失败:', error);
+        alert('恢复备份失败: ' + error.message);
+    }
+}
+
+// 删除备份
+async function deleteBackup(id) {
+    if (!confirm('确定要删除此备份吗？删除后无法恢复。')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/backups/${id}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('备份已删除');
+            loadBackupList();
+        } else {
+            alert(data.message || '删除失败');
+        }
+    } catch (error) {
+        console.error('删除备份失败:', error);
+        alert('删除备份失败: ' + error.message);
+    }
+}
+
+// 保存自动备份配置
+async function saveAutoBackupConfig() {
+    const config = {
+        enabled: document.getElementById('autoBackupEnabled').checked,
+        frequency: document.getElementById('autoBackupFrequency').value,
+        retention: parseInt(document.getElementById('backupRetention').value, 10)
+    };
+
+    try {
+        const response = await fetch('/api/auto-backup-config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(config)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // 保存到本地存储
+            const settings = getCurrentSettings();
+            settings.autoBackup = config;
+            saveSettingsToStorage(settings);
+            alert('自动备份配置已保存');
+        } else {
+            alert(data.message || '保存失败');
+        }
+    } catch (error) {
+        console.error('保存自动备份配置失败:', error);
+        alert('保存失败: ' + error.message);
+    }
+}
+
+// 更新数据备份函数
+async function backupData() {
+    const btn = document.querySelector('[onclick="backupData()"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass me-2"></i>备份中...';
+    }
+
+    try {
+        const response = await fetch('/api/backup', {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(`数据备份成功！\n文件名: ${data.fileName}\n大小: ${data.fileSize} MB`);
+            loadBackupList();
+        } else {
+            alert(data.message || '备份失败');
+        }
+    } catch (error) {
+        console.error('数据备份失败:', error);
+        alert('数据备份失败: ' + error.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>立即备份';
+        }
+    }
+}

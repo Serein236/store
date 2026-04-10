@@ -23,4 +23,15 @@ router.get('/out-records/:id', inventoryController.getOutRecordById);
 router.get('/settings', inventoryController.getSettings);
 router.post('/settings', inventoryController.saveSettings);
 
+// 备份管理API
+router.post('/backup', inventoryController.createBackup);
+router.get('/backups', inventoryController.getBackupList);
+router.get('/backups/:id/download', inventoryController.downloadBackup);
+router.delete('/backups/:id', inventoryController.deleteBackup);
+router.post('/backups/:id/restore', inventoryController.restoreBackup);
+router.post('/auto-backup-config', inventoryController.saveAutoBackupConfig);
+
+// 密码修改API
+router.post('/change-password', inventoryController.changePassword);
+
 module.exports = router;

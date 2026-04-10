@@ -53,26 +53,62 @@
             <p class="mb-0">配置系统参数和个性化选项</p>
         </div>
 
-        <div class="row g-4">
+        <!-- 设置选项卡导航 -->
+        <ul class="nav nav-pills mb-4" id="settingsTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="company-tab" data-bs-toggle="pill" data-bs-target="#company" type="button" role="tab">
+                    <i class="bi bi-building me-1"></i>公司信息
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="system-tab" data-bs-toggle="pill" data-bs-target="#system" type="button" role="tab">
+                    <i class="bi bi-sliders me-1"></i>系统参数
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="export-tab" data-bs-toggle="pill" data-bs-target="#export" type="button" role="tab">
+                    <i class="bi bi-file-earmark-arrow-down me-1"></i>导出设置
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="security-tab" data-bs-toggle="pill" data-bs-target="#security" type="button" role="tab">
+                    <i class="bi bi-shield-lock me-1"></i>安全设置
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="data-tab" data-bs-toggle="pill" data-bs-target="#data" type="button" role="tab">
+                    <i class="bi bi-database me-1"></i>数据管理
+                </button>
+            </li>
+        </ul>
+
+        <!-- 选项卡内容 -->
+        <div class="tab-content" id="settingsTabContent">
+
             <!-- 公司信息设置 -->
-            <div class="col-md-6">
+            <div class="tab-pane fade show active" id="company" role="tabpanel">
                 <div class="card settings-card">
                     <div class="card-header">
                         <i class="bi bi-building me-2"></i>公司信息
                     </div>
                     <div class="card-body">
-                        <div class="setting-section">
-                            <div class="mb-3">
-                                <label for="companyName" class="form-label">公司名称</label>
-                                <input type="text" class="form-control" id="companyName" placeholder="请输入公司名称">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="companyName" class="form-label">公司名称</label>
+                                    <input type="text" class="form-control" id="companyName" placeholder="请输入公司名称">
+                                    <div class="form-text">此名称将显示在出库单标题中</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="companyPhone" class="form-label">联系电话</label>
+                                    <input type="text" class="form-control" id="companyPhone" placeholder="请输入联系电话">
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="companyAddress" class="form-label">公司地址</label>
-                                <textarea class="form-control" id="companyAddress" rows="2" placeholder="请输入公司地址"></textarea>
-                            </div>
-                            <div class="mb-3">
-                                <label for="companyPhone" class="form-label">联系电话</label>
-                                <input type="text" class="form-control" id="companyPhone" placeholder="请输入联系电话">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="companyAddress" class="form-label">公司地址</label>
+                                    <textarea class="form-control" id="companyAddress" rows="5" placeholder="请输入公司地址"></textarea>
+                                </div>
                             </div>
                         </div>
                         <button class="btn btn-primary" onclick="saveCompanySettings()">
@@ -83,34 +119,38 @@
             </div>
 
             <!-- 系统参数设置 -->
-            <div class="col-md-6">
+            <div class="tab-pane fade" id="system" role="tabpanel">
                 <div class="card settings-card">
                     <div class="card-header">
                         <i class="bi bi-sliders me-2"></i>系统参数
                     </div>
                     <div class="card-body">
-                        <div class="setting-section">
-                            <div class="mb-3">
-                                <label for="pageSize" class="form-label">每页显示记录数</label>
-                                <select class="form-select" id="pageSize">
-                                    <option value="10">10条</option>
-                                    <option value="20">20条</option>
-                                    <option value="50">50条</option>
-                                    <option value="100">100条</option>
-                                </select>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="pageSize" class="form-label">每页显示记录数</label>
+                                    <select class="form-select" id="pageSize">
+                                        <option value="10">10条</option>
+                                        <option value="20">20条</option>
+                                        <option value="50">50条</option>
+                                        <option value="100">100条</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="dateFormat" class="form-label">日期格式</label>
-                                <select class="form-select" id="dateFormat">
-                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-                                    <option value="YYYY/MM/DD">YYYY/MM/DD</option>
-                                    <option value="DD-MM-YYYY">DD-MM-YYYY</option>
-                                </select>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="dateFormat" class="form-label">日期格式</label>
+                                    <select class="form-select" id="dateFormat">
+                                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                        <option value="YYYY/MM/DD">YYYY/MM/DD</option>
+                                        <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="autoRefresh">
-                                <label class="form-check-label" for="autoRefresh">启用自动刷新库存数据</label>
-                            </div>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="autoRefresh">
+                            <label class="form-check-label" for="autoRefresh">启用自动刷新库存数据</label>
                         </div>
                         <button class="btn btn-primary" onclick="saveSystemSettings()">
                             <i class="bi bi-save me-2"></i>保存系统参数
@@ -120,32 +160,36 @@
             </div>
 
             <!-- 导出设置 -->
-            <div class="col-md-6">
+            <div class="tab-pane fade" id="export" role="tabpanel">
                 <div class="card settings-card">
                     <div class="card-header">
                         <i class="bi bi-file-earmark-arrow-down me-2"></i>导出设置
                     </div>
                     <div class="card-body">
-                        <div class="setting-section">
-                            <div class="mb-3">
-                                <label for="defaultExportFormat" class="form-label">默认导出格式</label>
-                                <select class="form-select" id="defaultExportFormat">
-                                    <option value="excel">Excel (.xlsx)</option>
-                                    <option value="csv">CSV (.csv)</option>
-                                </select>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="defaultExportFormat" class="form-label">默认导出格式</label>
+                                    <select class="form-select" id="defaultExportFormat">
+                                        <option value="excel">Excel (.xlsx)</option>
+                                        <option value="csv">CSV (.csv)</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="exportTemplate" class="form-label">出库单模板</label>
-                                <select class="form-select" id="exportTemplate">
-                                    <option value="standard">标准模板</option>
-                                    <option value="detailed">详细模板</option>
-                                    <option value="simple">简洁模板</option>
-                                </select>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="exportTemplate" class="form-label">出库单模板</label>
+                                    <select class="form-select" id="exportTemplate">
+                                        <option value="standard">标准模板</option>
+                                        <option value="detailed">详细模板</option>
+                                        <option value="simple">简洁模板</option>
+                                    </select>
+                                </div>
                             </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="includeLogo">
-                                <label class="form-check-label" for="includeLogo">导出时包含公司LOGO</label>
-                            </div>
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="includeLogo">
+                            <label class="form-check-label" for="includeLogo">导出时包含公司LOGO</label>
                         </div>
                         <button class="btn btn-primary" onclick="saveExportSettings()">
                             <i class="bi bi-save me-2"></i>保存导出设置
@@ -155,54 +199,56 @@
             </div>
 
             <!-- 安全设置 -->
-            <div class="col-md-6">
+            <div class="tab-pane fade" id="security" role="tabpanel">
                 <div class="card settings-card">
                     <div class="card-header">
                         <i class="bi bi-shield-lock me-2"></i>安全设置
                     </div>
                     <div class="card-body">
-                        <div class="setting-section">
-                            <div class="mb-3">
-                                <label for="sessionTimeout" class="form-label">会话超时时间（分钟）</label>
-                                <input type="number" class="form-control" id="sessionTimeout" min="5" max="480" value="30">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6 class="mb-3">会话与通知</h6>
+                                <div class="mb-3">
+                                    <label for="sessionTimeout" class="form-label">会话超时时间（分钟）</label>
+                                    <input type="number" class="form-control" id="sessionTimeout" min="5" max="480" value="30">
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="requirePasswordChange">
+                                    <label class="form-check-label" for="requirePasswordChange">定期要求修改密码</label>
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="loginNotification">
+                                    <label class="form-check-label" for="loginNotification">登录时发送通知</label>
+                                </div>
+                                <button class="btn btn-primary" onclick="saveSecuritySettings()">
+                                    <i class="bi bi-save me-2"></i>保存安全设置
+                                </button>
                             </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="requirePasswordChange">
-                                <label class="form-check-label" for="requirePasswordChange">定期要求修改密码</label>
+                            <div class="col-md-6">
+                                <h6 class="mb-3"><i class="bi bi-key me-2"></i>修改密码</h6>
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label">当前密码</label>
+                                    <input type="password" class="form-control" id="currentPassword" placeholder="请输入当前密码">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label">新密码</label>
+                                    <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码（至少6位）">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">确认新密码</label>
+                                    <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入新密码">
+                                </div>
+                                <button class="btn btn-warning" onclick="changePassword()">
+                                    <i class="bi bi-shield-check me-2"></i>修改密码
+                                </button>
                             </div>
-                            <div class="form-check form-switch mb-3">
-                                <input class="form-check-input" type="checkbox" id="loginNotification">
-                                <label class="form-check-label" for="loginNotification">登录时发送通知</label>
-                            </div>
                         </div>
-                        <button class="btn btn-primary" onclick="saveSecuritySettings()">
-                            <i class="bi bi-save me-2"></i>保存安全设置
-                        </button>
-
-                        <hr class="my-4">
-
-                        <h6><i class="bi bi-key me-2"></i>修改密码</h6>
-                        <div class="mb-3">
-                            <label for="currentPassword" class="form-label">当前密码</label>
-                            <input type="password" class="form-control" id="currentPassword" placeholder="请输入当前密码">
-                        </div>
-                        <div class="mb-3">
-                            <label for="newPassword" class="form-label">新密码</label>
-                            <input type="password" class="form-control" id="newPassword" placeholder="请输入新密码（至少6位）">
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirmPassword" class="form-label">确认新密码</label>
-                            <input type="password" class="form-control" id="confirmPassword" placeholder="请再次输入新密码">
-                        </div>
-                        <button class="btn btn-warning" onclick="changePassword()">
-                            <i class="bi bi-shield-check me-2"></i>修改密码
-                        </button>
                     </div>
                 </div>
             </div>
 
             <!-- 数据管理 -->
-            <div class="col-md-12">
+            <div class="tab-pane fade" id="data" role="tabpanel">
                 <div class="card settings-card border-warning">
                     <div class="card-header bg-warning text-dark">
                         <i class="bi bi-exclamation-triangle me-2"></i>数据管理

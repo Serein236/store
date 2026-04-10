@@ -166,3 +166,7 @@ Thumbs.db
 
 # footer beian
 public/js/config.js
+
+# Backup directory
+backup/
+*.sql

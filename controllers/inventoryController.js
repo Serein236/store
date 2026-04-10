@@ -423,6 +423,33 @@ const inventoryController = {
             logger.error('修改出库失败', { username, outRecordId: id, error: error.message });
             res.status(500).json({ success: false, message: error.message || '修改出库失败' });
         }
+    },
+
+    // 获取设置
+    async getSettings(req, res) {
+        try {
+            // 从数据库或配置文件获取设置
+            const settings = await InventoryService.getSettings();
+            res.json(settings);
+        } catch (error) {
+            console.error('获取设置错误:', error);
+            res.status(500).json({ success: false, message: '获取设置失败' });
+        }
+    },
+
+    // 保存设置
+    async saveSettings(req, res) {
+        const username = req.session?.username || '未登录用户';
+        try {
+            const settings = req.body;
+            await InventoryService.saveSettings(settings);
+            logger.info('保存设置成功', { username, timestamp: new Date().toISOString() });
+            res.json({ success: true });
+        } catch (error) {
+            console.error('保存设置错误:', error);
+            logger.error('保存设置失败', { username, error: error.message });
+            res.status(500).json({ success: false, message: '保存设置失败' });
+        }
     }
 };
 

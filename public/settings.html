@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 仓库管理系统</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- 公共样式 -->
+    <link href="css/common.css" rel="stylesheet">
+    <style>
+        .settings-card {
+            transition: all 0.3s;
+        }
+        .settings-card:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,.1);
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .setting-section {
+            border-bottom: 1px solid #e9ecef;
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .setting-section:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 简洁顶部栏 -->
+    <nav class="navbar navbar-dark bg-dark fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-warehouse me-2"></i>仓库管理系统
+            </a>
+            <a href="index.html" class="btn btn-outline-light btn-sm">
+                <i class="bi bi-house-door me-1"></i>返回首页
+            </a>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <div class="container-fluid main-content">
+        <div class="page-header">
+            <h2 class="mb-1"><i class="bi bi-gear me-2"></i>系统设置</h2>
+            <p class="mb-0">配置系统参数和个性化选项</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- 公司信息设置 -->
+            <div class="col-md-6">
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <i class="bi bi-building me-2"></i>公司信息
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <div class="mb-3">
+                                <label for="companyName" class="form-label">公司名称</label>
+                                <input type="text" class="form-control" id="companyName" placeholder="请输入公司名称">
+                            </div>
+                            <div class="mb-3">
+                                <label for="companyAddress" class="form-label">公司地址</label>
+                                <textarea class="form-control" id="companyAddress" rows="2" placeholder="请输入公司地址"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="companyPhone" class="form-label">联系电话</label>
+                                <input type="text" class="form-control" id="companyPhone" placeholder="请输入联系电话">
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveCompanySettings()">
+                            <i class="bi bi-save me-2"></i>保存公司信息
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统参数设置 -->
+            <div class="col-md-6">
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <i class="bi bi-sliders me-2"></i>系统参数
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <div class="mb-3">
+                                <label for="pageSize" class="form-label">每页显示记录数</label>
+                                <select class="form-select" id="pageSize">
+                                    <option value="10">10条</option>
+                                    <option value="20">20条</option>
+                                    <option value="50">50条</option>
+                                    <option value="100">100条</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="dateFormat" class="form-label">日期格式</label>
+                                <select class="form-select" id="dateFormat">
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                                    <option value="YYYY/MM/DD">YYYY/MM/DD</option>
+                                    <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+                                </select>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="autoRefresh">
+                                <label class="form-check-label" for="autoRefresh">启用自动刷新库存数据</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSystemSettings()">
+                            <i class="bi bi-save me-2"></i>保存系统参数
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 导出设置 -->
+            <div class="col-md-6">
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <i class="bi bi-file-earmark-arrow-down me-2"></i>导出设置
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <div class="mb-3">
+                                <label for="defaultExportFormat" class="form-label">默认导出格式</label>
+                                <select class="form-select" id="defaultExportFormat">
+                                    <option value="excel">Excel (.xlsx)</option>
+                                    <option value="csv">CSV (.csv)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="exportTemplate" class="form-label">出库单模板</label>
+                                <select class="form-select" id="exportTemplate">
+                                    <option value="standard">标准模板</option>
+                                    <option value="detailed">详细模板</option>
+                                    <option value="simple">简洁模板</option>
+                                </select>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="includeLogo">
+                                <label class="form-check-label" for="includeLogo">导出时包含公司LOGO</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveExportSettings()">
+                            <i class="bi bi-save me-2"></i>保存导出设置
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 安全设置 -->
+            <div class="col-md-6">
+                <div class="card settings-card">
+                    <div class="card-header">
+                        <i class="bi bi-shield-lock me-2"></i>安全设置
+                    </div>
+                    <div class="card-body">
+                        <div class="setting-section">
+                            <div class="mb-3">
+                                <label for="sessionTimeout" class="form-label">会话超时时间（分钟）</label>
+                                <input type="number" class="form-control" id="sessionTimeout" min="5" max="480" value="30">
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="requirePasswordChange">
+                                <label class="form-check-label" for="requirePasswordChange">定期要求修改密码</label>
+                            </div>
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="loginNotification">
+                                <label class="form-check-label" for="loginNotification">登录时发送通知</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSecuritySettings()">
+                            <i class="bi bi-save me-2"></i>保存安全设置
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 数据管理 -->
+            <div class="col-md-12">
+                <div class="card settings-card border-warning">
+                    <div class="card-header bg-warning text-dark">
+                        <i class="bi bi-exclamation-triangle me-2"></i>数据管理
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>数据备份</h6>
+                                <p class="text-muted">备份所有库存数据、商品信息和出入库记录</p>
+                                <button class="btn btn-outline-primary" onclick="backupData()">
+                                    <i class="bi bi-download me-2"></i>立即备份
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>数据清理</h6>
+                                <p class="text-muted">清理指定日期之前的出入库记录</p>
+                                <div class="input-group mb-2">
+                                    <input type="date" class="form-control" id="cleanupDate">
+                                    <button class="btn btn-outline-danger" onclick="cleanupData()">
+                                        <i class="bi bi-trash me-2"></i>清理数据
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            &copy; 2026 仓库管理系统 | <a href="https://beian.miit.gov.cn/" target="_blank"
+                class="text-decoration-none text-reset">鄂ICP备2025167566号</a>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/settings.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const beianLink = document.querySelector('footer a[href*="beian.miit.gov.cn"]');
+            if (beianLink && config.beian) {
+                beianLink.textContent = config.beian;
+            }
+        });
+    </script>
+</body>
+
+</html>

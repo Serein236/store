@@ -35,7 +35,8 @@ const protectedPages = [
     '/in_records.html', 
     '/out_records.html', 
     '/stock.html', 
-    '/query.html'
+    '/query.html',
+    '/settings.html'
 ];
 
 protectedPages.forEach(page => {

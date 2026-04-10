@@ -319,6 +319,44 @@ const InventoryService = {
 
             return { success: true };
         });
+    },
+
+    // 获取设置
+    async getSettings() {
+        try {
+            const settings = await dbUtils.queryOne('SELECT * FROM system_settings ORDER BY id DESC LIMIT 1');
+            if (settings) {
+                return JSON.parse(settings.settings_json);
+            }
+            return null;
+        } catch (error) {
+            console.error('获取设置失败:', error);
+            return null;
+        }
+    },
+
+    // 保存设置
+    async saveSettings(settings) {
+        try {
+            const settingsJson = JSON.stringify(settings);
+            const existing = await dbUtils.queryOne('SELECT id FROM system_settings LIMIT 1');
+
+            if (existing) {
+                await dbUtils.update(
+                    'UPDATE system_settings SET settings_json = ?, updated_at = NOW() WHERE id = ?',
+                    [settingsJson, existing.id]
+                );
+            } else {
+                await dbUtils.insert(
+                    'INSERT INTO system_settings (settings_json, created_at, updated_at) VALUES (?, NOW(), NOW())',
+                    [settingsJson]
+                );
+            }
+            return { success: true };
+        } catch (error) {
+            console.error('保存设置失败:', error);
+            throw error;
+        }
     }
 };
 

@@ -1,3 +1,15 @@
+// 从设置中获取公司名称
+function getCompanyName() {
+    const settings = localStorage.getItem('warehouse_settings');
+    if (settings) {
+        const parsed = JSON.parse(settings);
+        if (parsed.company && parsed.company.name) {
+            return parsed.company.name;
+        }
+    }
+    return '公司名称未设置，请到设置中设置！';
+}
+
 // 格式化时间戳为日期
 function formatDate(timestamp) {
     if (!timestamp) return '-';
@@ -249,7 +261,7 @@ async function viewOutOrder(recordId) {
             <div class="container">
                 <div class="row mb-4">
                     <div class="col text-center">
-                        <h2>武没市明睿康星物料技有限公司销售出库单</h2>
+                        <h2>${getCompanyName()}销售出库单</h2>
                         <div class="row mt-3">
                             <div class="col text-end">
                                 <p>单号：${orderNumber}</p>
@@ -510,7 +522,7 @@ async function exportOutOrder(recordId) {
         const formattedRetailPrice = retailPrice !== '-' ? parseFloat(retailPrice).toFixed(2) : '-';
         
         // 生成CSV内容（按照第一个图片的格式）
-        let csvContent = `data:text/csv;charset=utf-8,\uFEFF,,武没市明睿康星物料技有限公司销售出库单,,,,,,\n\n,,,,单号：${orderNumber},转入单号：,,\n开单日期：,${formattedDate},客户名称：,${record.destination || '-'},生产厂家：,${manufacturer},,,\n收货人：,${consignee},收货地址：,${consigneeAddress},收货联系电话：,${consigneePhone},,,\n\n序号,产品编码,品牌,品名,产品规格,单位,数量,单价,金额/元,产品批号,生产日期,有效期,零售价,备注\n1,${productCode},,${record.product_name},${spec},${unit},${record.quantity},${parseFloat(record.unit_price).toFixed(2)},${parseFloat(record.total_amount).toFixed(2)},${record.batch_number || '-'},${formattedProductionDate},${formattedExpirationDate},${formattedRetailPrice},${record.remark || '-'}\n\n合计金额人民币（小写）：,,,,,,,,${parseFloat(record.total_amount).toFixed(2)},共 1 件,,\n合计金额人民币（大写）：,,,,,,,,${numToChinese(parseFloat(record.total_amount))},,,\n\n制单人：,,审核人：,,销售负责人：,,客户收货人：,,\n\n（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）,,,,,,\n注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好,,,,,,`;
+        let csvContent = `data:text/csv;charset=utf-8,\uFEFF,,${getCompanyName()}销售出库单,,,,,,\n\n,,,,单号：${orderNumber},转入单号：,,\n开单日期：,${formattedDate},客户名称：,${record.destination || '-'},生产厂家：,${manufacturer},,,\n收货人：,${consignee},收货地址：,${consigneeAddress},收货联系电话：,${consigneePhone},,,\n\n序号,产品编码,品牌,品名,产品规格,单位,数量,单价,金额/元,产品批号,生产日期,有效期,零售价,备注\n1,${productCode},,${record.product_name},${spec},${unit},${record.quantity},${parseFloat(record.unit_price).toFixed(2)},${parseFloat(record.total_amount).toFixed(2)},${record.batch_number || '-'},${formattedProductionDate},${formattedExpirationDate},${formattedRetailPrice},${record.remark || '-'}\n\n合计金额人民币（小写）：,,,,,,,,${parseFloat(record.total_amount).toFixed(2)},共 1 件,,\n合计金额人民币（大写）：,,,,,,,,${numToChinese(parseFloat(record.total_amount))},,,\n\n制单人：,,审核人：,,销售负责人：,,客户收货人：,,\n\n（一式四联：白色存根联 黄色回单联 红色客户联为财务对账联）,,,,,,\n注意事项：客户签收表示购销双方权利义务已确认，货品如有差错，请三天内来电说明（与销售负责人联系），每次发货同行的厂检请保存好,,,,,,`;
         
         try {
             // 使用ExcelJS导出
@@ -537,7 +549,7 @@ async function exportOutOrder(recordId) {
                 ];
                 
                 // 添加标题行（第1行）
-                const titleRow = worksheet.addRow(['武没市明睿康星物料技有限公司销售出库单']);
+                const titleRow = worksheet.addRow([`${getCompanyName()}销售出库单`]);
                 worksheet.mergeCells('A1:M1');
                 const titleCell = worksheet.getCell('A1');
                 titleCell.font = { name: '黑体', size: 20, bold: true };
@@ -730,7 +742,7 @@ async function batchViewOutOrder() {
             <div class="container">
                 <div class="row mb-4">
                     <div class="col text-center">
-                        <h2>武没市明睿康星物料技有限公司销售出库单</h2>
+                        <h2>${getCompanyName()}销售出库单</h2>
                         <div class="row mt-3">
                             <div class="col text-end">
                                 <p>单号：${orderNumber}</p>
@@ -1003,7 +1015,7 @@ async function confirmBatchExport() {
         }
         
         // 生成CSV内容
-        let csvContent = `data:text/csv;charset=utf-8,\uFEFF,,武没市明睿康星物料技有限公司销售出库单,,,,,,\n\n,,,,单号：${orderNumber},转入单号：,,\n开单日期：,${firstRecord.display_date ? formatDate(firstRecord.display_date) : '-'},客户名称：,${firstRecord.destination || '-'},生产厂家：,-,,\n收货人：,${consignee},收货地址：,${consigneeAddress},收货联系电话：,${consigneePhone},,,\n\n序号,产品编码,品牌,品名,产品规格,单位,数量,单价,金额/元,产品批号,生产日期,有效期,零售价,备注\n`;
+        let csvContent = `data:text/csv;charset=utf-8,\uFEFF,,${getCompanyName()}销售出库单,,,,,,\n\n,,,,单号：${orderNumber},转入单号：,,\n开单日期：,${firstRecord.display_date ? formatDate(firstRecord.display_date) : '-'},客户名称：,${firstRecord.destination || '-'},生产厂家：,-,,\n收货人：,${consignee},收货地址：,${consigneeAddress},收货联系电话：,${consigneePhone},,,\n\n序号,产品编码,品牌,品名,产品规格,单位,数量,单价,金额/元,产品批号,生产日期,有效期,零售价,备注\n`;
         
         records.forEach((record, index) => {
             const productCode = record.product_code || '-';
@@ -1043,7 +1055,7 @@ async function confirmBatchExport() {
                 ];
                 
                 // 添加标题行（第1行）
-                const titleRow = worksheet.addRow(['武没市明睿康星物料技有限公司销售出库单']);
+                const titleRow = worksheet.addRow([`${getCompanyName()}销售出库单`]);
                 worksheet.mergeCells('A1:M1');
                 const titleCell = worksheet.getCell('A1');
                 titleCell.font = { name: '黑体', size: 20, bold: true };
@@ -1186,7 +1198,7 @@ async function confirmBatchExport() {
                 console.warn('Excel导出API不可用，使用CSV导出');
                 
                 // 生成CSV内容
-                let csvContent = `data:text/csv;charset=utf-8,﻿,,武没市明睿康星物料技有限公司销售出库单,,,,,,
+                let csvContent = `data:text/csv;charset=utf-8,﻿,,${getCompanyName()}销售出库单,,,,,,
 
 ,,,,单号：${orderNumber},转入单号：,,
 开单日期：,${firstRecord.display_date || '-'},客户名称：,${firstRecord.destination || '-'},生产厂家：,-,,,
@@ -1225,7 +1237,7 @@ async function confirmBatchExport() {
             console.error('Excel导出失败，使用CSV导出:', error);
             
             // 生成CSV内容
-            let csvContent = `data:text/csv;charset=utf-8,﻿,,武没市明睿康星物料技有限公司销售出库单,,,,,,
+            let csvContent = `data:text/csv;charset=utf-8,﻿,,${getCompanyName()}销售出库单,,,,,,
 
 ,,,,单号：${orderNumber},转入单号：,,
 开单日期：,${firstRecord.display_date || '-'},客户名称：,${firstRecord.destination || '-'},生产厂家：,-,,,

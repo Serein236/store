@@ -19,4 +19,8 @@ router.get('/suppliers', inventoryController.getSuppliers);
 router.get('/customers', inventoryController.getCustomers);
 router.get('/out-records/:id', inventoryController.getOutRecordById);
 
+// 设置API
+router.get('/settings', inventoryController.getSettings);
+router.post('/settings', inventoryController.saveSettings);
+
 module.exports = router;

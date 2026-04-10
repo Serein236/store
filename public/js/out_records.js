@@ -181,15 +181,24 @@ async function initOutRecordsPage() {
     // 处理URL参数中的月份筛选
     const urlParams = new URLSearchParams(window.location.search);
     const monthParam = urlParams.get('month');
-    if (monthParam) {
-        const filterMonth = document.getElementById('filterMonth');
-        if (filterMonth) {
-            filterMonth.value = monthParam;
-        }
+    const filterMonth = document.getElementById('filterMonth');
+    if (monthParam && filterMonth) {
+        filterMonth.value = monthParam;
         // 清除URL参数
         window.history.replaceState({}, '', window.location.pathname);
     }
-    
+
+    // 绑定月份筛选事件
+    if (filterMonth) {
+        filterMonth.addEventListener('change', loadOutRecords);
+    }
+
+    // 绑定清除按钮事件
+    const clearMonthBtn = document.getElementById('clearMonthBtn');
+    if (clearMonthBtn) {
+        clearMonthBtn.addEventListener('click', clearMonthFilter);
+    }
+
     // 加载出库记录
     await loadOutRecords();
 }

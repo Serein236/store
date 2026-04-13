@@ -562,7 +562,15 @@ function showAddUserModal() {
     document.getElementById('newUsername').value = '';
     document.getElementById('newUserPassword').value = '';
     document.getElementById('userRole').value = 'user';
+
+    // 显示新增模式字段，隐藏编辑模式字段
+    document.getElementById('usernameField').style.display = 'block';
+    document.getElementById('usernameReadonlyField').style.display = 'none';
     document.getElementById('passwordField').style.display = 'block';
+    document.getElementById('newPasswordField').style.display = 'none';
+    document.getElementById('confirmPasswordField').style.display = 'none';
+    document.getElementById('roleField').style.display = 'block';
+    document.getElementById('roleReadonlyField').style.display = 'none';
 
     const modal = new bootstrap.Modal(document.getElementById('userModal'));
     modal.show();
@@ -571,11 +579,20 @@ function showAddUserModal() {
 // 显示编辑用户模态框
 function showEditUserModal(id, username, role) {
     document.getElementById('userId').value = id;
-    document.getElementById('userModalTitle').textContent = '编辑用户';
-    document.getElementById('newUsername').value = username;
-    document.getElementById('newUserPassword').value = '';
-    document.getElementById('userRole').value = role;
+    document.getElementById('userModalTitle').textContent = '修改密码';
+    document.getElementById('readonlyUsername').value = username;
+    document.getElementById('readonlyRole').value = role === 'admin' ? '管理员' : '普通用户';
+    document.getElementById('editUserPassword').value = '';
+    document.getElementById('confirmUserPassword').value = '';
+
+    // 隐藏新增模式字段，显示编辑模式字段
+    document.getElementById('usernameField').style.display = 'none';
+    document.getElementById('usernameReadonlyField').style.display = 'block';
     document.getElementById('passwordField').style.display = 'none';
+    document.getElementById('newPasswordField').style.display = 'block';
+    document.getElementById('confirmPasswordField').style.display = 'block';
+    document.getElementById('roleField').style.display = 'none';
+    document.getElementById('roleReadonlyField').style.display = 'block';
 
     const modal = new bootstrap.Modal(document.getElementById('userModal'));
     modal.show();
@@ -584,49 +601,89 @@ function showEditUserModal(id, username, role) {
 // 保存用户（新增或编辑）
 async function saveUser() {
     const id = document.getElementById('userId').value;
-    const username = document.getElementById('newUsername').value.trim();
-    const password = document.getElementById('newUserPassword').value;
-    const role = document.getElementById('userRole').value;
-
-    if (!username) {
-        alert('请输入用户名');
-        return;
-    }
-
     const isEdit = !!id;
-    if (!isEdit && !password) {
-        alert('请输入密码');
-        return;
-    }
 
-    if (!isEdit && password.length < 6) {
-        alert('密码至少需要6位');
-        return;
-    }
+    if (!isEdit) {
+        // 新增用户模式
+        const username = document.getElementById('newUsername').value.trim();
+        const password = document.getElementById('newUserPassword').value;
+        const role = document.getElementById('userRole').value;
 
-    try {
-        const url = isEdit ? `/api/auth/users/${id}` : '/api/auth/users';
-        const method = isEdit ? 'PUT' : 'POST';
-        const body = isEdit ? { username, role } : { username, password, role };
-
-        const response = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body)
-        });
-
-        const data = await response.json();
-
-        if (data.success) {
-            alert(data.message);
-            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
-            loadUserList();
-        } else {
-            alert(data.message || '操作失败');
+        if (!username) {
+            alert('请输入用户名');
+            return;
         }
-    } catch (error) {
-        console.error('保存用户失败:', error);
-        alert('保存用户失败: ' + error.message);
+
+        if (!password) {
+            alert('请输入密码');
+            return;
+        }
+
+        if (password.length < 6) {
+            alert('密码至少需要6位');
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/auth/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password, role })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+                loadUserList();
+            } else {
+                alert(data.message || '操作失败');
+            }
+        } catch (error) {
+            console.error('保存用户失败:', error);
+            alert('保存用户失败: ' + error.message);
+        }
+    } else {
+        // 编辑用户模式（修改密码）
+        const newPassword = document.getElementById('editUserPassword').value;
+        const confirmPassword = document.getElementById('confirmUserPassword').value;
+
+        if (!newPassword) {
+            alert('请输入新密码');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            alert('密码至少需要6位');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            alert('两次输入的密码不一致');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/auth/users/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: newPassword })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                alert(data.message);
+                bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+                loadUserList();
+            } else {
+                alert(data.message || '操作失败');
+            }
+        } catch (error) {
+            console.error('修改密码失败:', error);
+            alert('修改密码失败: ' + error.message);
+        }
     }
 }
 

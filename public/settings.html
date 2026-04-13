@@ -388,20 +388,43 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="userId">
-                    <div class="mb-3">
+                    <!-- 新增模式：可编辑用户名 -->
+                    <div class="mb-3" id="usernameField">
                         <label for="newUsername" class="form-label">用户名 <span class="text-danger">*</span></label>
                         <input type="text" class="form-control" id="newUsername" placeholder="请输入用户名">
                     </div>
+                    <!-- 编辑模式：只读显示用户名 -->
+                    <div class="mb-3" id="usernameReadonlyField" style="display: none;">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="readonlyUsername" readonly>
+                    </div>
+                    <!-- 新增模式：初始密码 -->
                     <div class="mb-3" id="passwordField">
                         <label for="newUserPassword" class="form-label">密码 <span class="text-danger">*</span></label>
                         <input type="password" class="form-control" id="newUserPassword" placeholder="请输入密码（至少6位）">
                     </div>
-                    <div class="mb-3">
+                    <!-- 编辑模式：新密码 -->
+                    <div class="mb-3" id="newPasswordField" style="display: none;">
+                        <label for="editUserPassword" class="form-label">新密码 <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="editUserPassword" placeholder="请输入新密码（至少6位）">
+                    </div>
+                    <!-- 编辑模式：确认新密码 -->
+                    <div class="mb-3" id="confirmPasswordField" style="display: none;">
+                        <label for="confirmUserPassword" class="form-label">确认新密码 <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="confirmUserPassword" placeholder="请再次输入新密码">
+                    </div>
+                    <!-- 新增模式：选择角色 -->
+                    <div class="mb-3" id="roleField">
                         <label for="userRole" class="form-label">角色</label>
                         <select class="form-select" id="userRole">
                             <option value="user">普通用户</option>
                             <option value="admin">管理员</option>
                         </select>
+                    </div>
+                    <!-- 编辑模式：只读显示角色 -->
+                    <div class="mb-3" id="roleReadonlyField" style="display: none;">
+                        <label class="form-label">角色</label>
+                        <input type="text" class="form-control" id="readonlyRole" readonly>
                     </div>
                 </div>
                 <div class="modal-footer">

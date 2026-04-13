@@ -127,18 +127,35 @@ const authController = {
     // 更新用户
     async updateUser(req, res) {
         const { id } = req.params;
-        const { username, role } = req.body;
+        const { username, role, password } = req.body;
 
         try {
-            // 不能修改自己的角色
-            if (parseInt(id) === req.session.userId && role !== undefined) {
-                return res.status(400).json({ success: false, message: '不能修改自己的角色' });
-            }
-
             // 检查用户是否存在
             const user = await UserModel.findById(id);
             if (!user) {
                 return res.status(404).json({ success: false, message: '用户不存在' });
+            }
+
+            // 如果提供了密码，执行密码修改
+            if (password) {
+                if (password.length < 6) {
+                    return res.status(400).json({ success: false, message: '密码至少需要6位' });
+                }
+
+                // 加密密码
+                const salt = await bcrypt.genSalt(10);
+                const hashedPassword = await bcrypt.hash(password, salt);
+
+                await UserModel.updatePassword(id, hashedPassword);
+
+                logger.info('修改用户密码成功', { userId: id, username: user.username, updatedBy: req.session.username });
+                return res.json({ success: true, message: '密码修改成功' });
+            }
+
+            // 否则执行用户信息更新（用户名和角色）
+            // 不能修改自己的角色
+            if (parseInt(id) === req.session.userId && role !== undefined) {
+                return res.status(400).json({ success: false, message: '不能修改自己的角色' });
             }
 
             // 如果要修改用户名，检查是否与其他用户冲突

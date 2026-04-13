@@ -1,8 +1,8 @@
 // config/database.example.js
 const mysql = require('mysql2');
 
-// 创建数据库连接池（更高效）
-const pool = mysql.createPool({
+// 数据库配置
+const dbConfig = {
     host: 'localhost',
     user: 'your_database_username', // 请修改为你的数据库用户名
     password: 'your_database_password', // 请修改为你的数据库密码
@@ -11,7 +11,10 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
-});
+};
+
+// 创建数据库连接池
+const pool = mysql.createPool(dbConfig);
 
 // 创建promise版本的连接池
 const promisePool = pool.promise();
@@ -26,4 +29,4 @@ pool.getConnection((err, connection) => {
     connection.release();
 });
 
-module.exports = { pool, promisePool };
+module.exports = { pool, promisePool, dbConfig };

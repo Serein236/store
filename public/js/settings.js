@@ -272,10 +272,27 @@ async function logout() {
     }
 }
 
+// 检查是否为管理员
+async function checkIsAdmin() {
+    try {
+        const response = await fetch('/api/auth/check-admin');
+        const data = await response.json();
+        if (data.isAdmin) {
+            // 显示用户管理选项卡
+            document.getElementById('userManagementTab').classList.remove('d-none');
+            // 加载用户列表
+            loadUserList();
+        }
+    } catch (error) {
+        console.error('检查管理员权限失败:', error);
+    }
+}
+
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', function() {
     checkLogin();
     loadBackupList();
+    checkIsAdmin();
 });
 
 // 获取设置（供其他页面使用）
@@ -483,5 +500,183 @@ async function backupData() {
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-plus-circle me-2"></i>立即备份';
         }
+    }
+}
+
+// ==================== 用户管理功能 ====================
+
+// 加载用户列表
+async function loadUserList() {
+    try {
+        const response = await fetch('/api/auth/users');
+        const data = await response.json();
+
+        const tbody = document.getElementById('userListBody');
+        const emptyDiv = document.getElementById('userListEmpty');
+
+        if (!data.success || !data.users || data.users.length === 0) {
+            tbody.innerHTML = '';
+            emptyDiv.classList.remove('d-none');
+            return;
+        }
+
+        emptyDiv.classList.add('d-none');
+
+        tbody.innerHTML = data.users.map(user => `
+            <tr>
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>
+                    <span class="badge ${user.role === 'admin' ? 'bg-danger' : 'bg-secondary'}">
+                        ${user.role === 'admin' ? '管理员' : '普通用户'}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${user.is_active ? 'bg-success' : 'bg-warning text-dark'}">
+                        ${user.is_active ? '启用' : '禁用'}
+                    </span>
+                </td>
+                <td>${new Date(user.created_at).toLocaleString()}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="showEditUserModal(${user.id}, '${user.username}', '${user.role}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm ${user.is_active ? 'btn-outline-warning' : 'btn-outline-success'} me-1" onclick="toggleUserStatus(${user.id}, ${user.is_active})">
+                        <i class="bi bi-${user.is_active ? 'pause' : 'play'}-circle"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('加载用户列表失败:', error);
+    }
+}
+
+// 显示新增用户模态框
+function showAddUserModal() {
+    document.getElementById('userId').value = '';
+    document.getElementById('userModalTitle').textContent = '新增用户';
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newUserPassword').value = '';
+    document.getElementById('userRole').value = 'user';
+    document.getElementById('passwordField').style.display = 'block';
+
+    const modal = new bootstrap.Modal(document.getElementById('userModal'));
+    modal.show();
+}
+
+// 显示编辑用户模态框
+function showEditUserModal(id, username, role) {
+    document.getElementById('userId').value = id;
+    document.getElementById('userModalTitle').textContent = '编辑用户';
+    document.getElementById('newUsername').value = username;
+    document.getElementById('newUserPassword').value = '';
+    document.getElementById('userRole').value = role;
+    document.getElementById('passwordField').style.display = 'none';
+
+    const modal = new bootstrap.Modal(document.getElementById('userModal'));
+    modal.show();
+}
+
+// 保存用户（新增或编辑）
+async function saveUser() {
+    const id = document.getElementById('userId').value;
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newUserPassword').value;
+    const role = document.getElementById('userRole').value;
+
+    if (!username) {
+        alert('请输入用户名');
+        return;
+    }
+
+    const isEdit = !!id;
+    if (!isEdit && !password) {
+        alert('请输入密码');
+        return;
+    }
+
+    if (!isEdit && password.length < 6) {
+        alert('密码至少需要6位');
+        return;
+    }
+
+    try {
+        const url = isEdit ? `/api/auth/users/${id}` : '/api/auth/users';
+        const method = isEdit ? 'PUT' : 'POST';
+        const body = isEdit ? { username, role } : { username, password, role };
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+            loadUserList();
+        } else {
+            alert(data.message || '操作失败');
+        }
+    } catch (error) {
+        console.error('保存用户失败:', error);
+        alert('保存用户失败: ' + error.message);
+    }
+}
+
+// 删除用户
+async function deleteUser(id) {
+    if (!confirm('确定要删除此用户吗？此操作不可恢复！')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/auth/users/${id}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            loadUserList();
+        } else {
+            alert(data.message || '删除失败');
+        }
+    } catch (error) {
+        console.error('删除用户失败:', error);
+        alert('删除用户失败: ' + error.message);
+    }
+}
+
+// 切换用户状态（启用/禁用）
+async function toggleUserStatus(id, currentStatus) {
+    const action = currentStatus ? '禁用' : '启用';
+    if (!confirm(`确定要${action}此用户吗？`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/auth/users/${id}/toggle`, {
+            method: 'POST'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert(data.message);
+            loadUserList();
+        } else {
+            alert(data.message || '操作失败');
+        }
+    } catch (error) {
+        console.error('切换用户状态失败:', error);
+        alert('操作失败: ' + error.message);
     }
 }

@@ -8,6 +8,62 @@ const UserModel = {
 
     async findById(id) {
         return await dbUtils.queryOne('SELECT * FROM users WHERE id = ?', [id]);
+    },
+
+    async findAll() {
+        return await dbUtils.query(
+            'SELECT id, username, role, is_active, created_at FROM users ORDER BY created_at DESC'
+        );
+    },
+
+    async create(userData) {
+        const { username, password, role = 'user' } = userData;
+        const result = await dbUtils.insert(
+            'INSERT INTO users (username, password, role, is_active, created_at) VALUES (?, ?, ?, true, NOW())',
+            [username, password, role]
+        );
+        return result;
+    },
+
+    async update(id, userData) {
+        const { username, role, is_active } = userData;
+        const fields = [];
+        const values = [];
+
+        if (username !== undefined) {
+            fields.push('username = ?');
+            values.push(username);
+        }
+        if (role !== undefined) {
+            fields.push('role = ?');
+            values.push(role);
+        }
+        if (is_active !== undefined) {
+            fields.push('is_active = ?');
+            values.push(is_active);
+        }
+
+        if (fields.length === 0) return null;
+
+        values.push(id);
+        const sql = `UPDATE users SET ${fields.join(', ')} WHERE id = ?`;
+        return await dbUtils.update(sql, values);
+    },
+
+    async updatePassword(id, hashedPassword) {
+        return await dbUtils.update(
+            'UPDATE users SET password = ? WHERE id = ?',
+            [hashedPassword, id]
+        );
+    },
+
+    async delete(id) {
+        return await dbUtils.update('DELETE FROM users WHERE id = ?', [id]);
+    },
+
+    async isAdmin(id) {
+        const user = await this.findById(id);
+        return user && user.role === 'admin';
     }
 };
 

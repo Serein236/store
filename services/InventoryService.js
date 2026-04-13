@@ -12,6 +12,15 @@ const util = require('util');
 const execPromise = util.promisify(exec);
 const bcrypt = require('bcryptjs');
 
+// 导入数据库配置获取连接信息
+let dbConfigObj = null;
+try {
+    const dbModule = require('../config/databases');
+    dbConfigObj = dbModule.dbConfig || null;
+} catch (e) {
+    console.error('加载数据库配置失败:', e);
+}
+
 const InventoryService = {
     async inStock(data) {
         return await dbUtils.executeTransaction(async (connection) => {
@@ -378,11 +387,19 @@ const InventoryService = {
             fsSync.mkdirSync(backupDir, { recursive: true });
         }
 
-        // 从环境变量获取数据库配置或使用默认值
-        const dbHost = process.env.DB_HOST || 'localhost';
-        const dbUser = process.env.DB_USER || 'root';
-        const dbPassword = process.env.DB_PASSWORD || '';
-        const dbName = process.env.DB_NAME || 'warehouse';
+        // 从数据库配置文件获取连接信息（优先）或使用默认值
+        let dbHost = 'localhost';
+        let dbUser = 'root';
+        let dbPassword = '';
+        let dbName = 'warehouse';
+
+        // 尝试从配置文件读取
+        if (dbConfigObj) {
+            dbHost = dbConfigObj.host || dbHost;
+            dbUser = dbConfigObj.user || dbUser;
+            dbPassword = dbConfigObj.password || dbPassword;
+            dbName = dbConfigObj.database || dbName;
+        }
 
         // 执行 mysqldump
         const passwordPart = dbPassword ? `-p"${dbPassword}"` : '';
@@ -414,6 +431,9 @@ const InventoryService = {
     // 获取备份列表
     async getBackupList() {
         try {
+            // 先同步文件夹中的备份文件
+            await this.syncBackupsFromFolder();
+
             const backups = await dbUtils.query(
                 'SELECT id, file_name, file_size, created_by, created_at FROM backups ORDER BY created_at DESC'
             );
@@ -421,6 +441,61 @@ const InventoryService = {
         } catch (error) {
             console.error('获取备份列表失败:', error);
             return [];
+        }
+    },
+
+    // 扫描备份文件夹，同步文件到数据库
+    async syncBackupsFromFolder() {
+        try {
+            const backupDir = path.join(process.cwd(), 'backup');
+
+            // 检查备份目录是否存在
+            if (!fsSync.existsSync(backupDir)) {
+                return;
+            }
+
+            // 读取所有 .sql 文件
+            const files = fsSync.readdirSync(backupDir).filter(f => f.endsWith('.sql'));
+
+            // 获取数据库中已有的文件名
+            const existingBackups = await dbUtils.query('SELECT file_name FROM backups');
+            const existingFileNames = new Set(existingBackups.map(b => b.file_name));
+
+            // 找出文件夹中有但数据库中没有的文件
+            for (const fileName of files) {
+                if (!existingFileNames.has(fileName)) {
+                    const filePath = path.join(backupDir, fileName);
+                    const stats = fsSync.statSync(filePath);
+                    const fileSize = (stats.size / 1024 / 1024).toFixed(2); // MB
+
+                    // 从文件名尝试解析时间戳
+                    let createdAt = new Date(stats.mtime); // 使用文件修改时间作为默认
+                    const match = fileName.match(/warehouse_backup_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/);
+                    if (match) {
+                        const timestamp = match[1].replace(/-/g, ':').replace('T', ' ');
+                        createdAt = new Date(timestamp);
+                    }
+
+                    // 插入数据库记录
+                    await dbUtils.insert(
+                        'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
+                        [fileName, filePath, fileSize, 'system', createdAt]
+                    );
+
+                    console.log(`同步备份文件到数据库: ${fileName}`);
+                }
+            }
+
+            // 清理数据库中有但文件夹中不存在的记录（可选）
+            for (const backup of existingBackups) {
+                const filePath = path.join(backupDir, backup.file_name);
+                if (!fsSync.existsSync(filePath)) {
+                    await dbUtils.update('DELETE FROM backups WHERE file_name = ?', [backup.file_name]);
+                    console.log(`清理已删除的备份记录: ${backup.file_name}`);
+                }
+            }
+        } catch (error) {
+            console.error('同步备份文件夹失败:', error);
         }
     },
 
@@ -457,11 +532,18 @@ const InventoryService = {
             throw new Error('备份文件不存在');
         }
 
-        // 从环境变量获取数据库配置或使用默认值
-        const dbHost = process.env.DB_HOST || 'localhost';
-        const dbUser = process.env.DB_USER || 'root';
-        const dbPassword = process.env.DB_PASSWORD || '';
-        const dbName = process.env.DB_NAME || 'warehouse';
+        // 从数据库配置文件获取连接信息
+        let dbHost = 'localhost';
+        let dbUser = 'root';
+        let dbPassword = '';
+        let dbName = 'warehouse';
+
+        if (dbConfigObj) {
+            dbHost = dbConfigObj.host || dbHost;
+            dbUser = dbConfigObj.user || dbUser;
+            dbPassword = dbConfigObj.password || dbPassword;
+            dbName = dbConfigObj.database || dbName;
+        }
 
         // 执行恢复
         const passwordPart = dbPassword ? `-p"${dbPassword}"` : '';

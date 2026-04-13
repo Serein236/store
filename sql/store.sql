@@ -1,7 +1,7 @@
 /*
  仓库管理系统数据库 - 批次管理版本
- 版本: v3.1
- 日期: 2026-01-23
+ 版本: v3.2
+ 日期: 2026-04-13
 */
 
 SET NAMES utf8mb4;
@@ -21,6 +21,9 @@ CREATE TABLE `products`  (
   `retail_price` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '零售价',
   `barcode` varchar(15) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '商品条形码',
   `manufacturer` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '生产厂家',
+  `stock` int NOT NULL DEFAULT 0 COMMENT '当前库存',
+  `warning_quantity` int NULL DEFAULT 10 COMMENT '警告库存数量',
+  `danger_quantity` int NULL DEFAULT 5 COMMENT '危险库存数量',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
@@ -167,6 +170,8 @@ CREATE TABLE `users`  (
   `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '登录用户名',
   `display_name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '显示用户名',
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
+  `role` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'user' COMMENT '角色: admin-管理员, user-普通用户',
+  `is_active` tinyint(1) NOT NULL DEFAULT 1 COMMENT '是否启用: 1-启用, 0-禁用',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
@@ -174,7 +179,46 @@ CREATE TABLE `users`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
 
 -- 初始化管理员用户
-INSERT INTO `users` (username, display_name, password) VALUES 
-('admin', '系统管理员', '$2b$10$leTrmigjUad6O0TiF8Fg0.Ho7RalUj.8M/jQQar6XLF2dELiPX.AG');
+INSERT INTO `users` (username, display_name, password, role, is_active) VALUES 
+('admin', '系统管理员', '$2b$10$leTrmigjUad6O0TiF8Fg0.Ho7RalUj.8M/jQQar6XLF2dELiPX.AG', 'admin', 1);
+
+-- ----------------------------
+-- 8. 备份记录表
+-- ----------------------------
+DROP TABLE IF EXISTS `backups`;
+CREATE TABLE `backups` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `file_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '备份文件名',
+  `file_path` varchar(500) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '文件完整路径',
+  `file_size` decimal(10,2) NULL DEFAULT NULL COMMENT '文件大小(MB)',
+  `created_by` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '创建者',
+  `created_at` datetime NOT NULL COMMENT '创建时间',
+  `backup_type` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT 'manual' COMMENT '备份类型: manual-手动, auto-自动, pre_delete-删除前备份',
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_created_at`(`created_at` ASC) USING BTREE,
+  INDEX `idx_backup_type`(`backup_type` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- 9. 系统设置表
+-- ----------------------------
+DROP TABLE IF EXISTS `settings`;
+CREATE TABLE `settings` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `setting_key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '设置键',
+  `setting_value` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL COMMENT '设置值(JSON格式)',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '描述',
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `updated_by` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '更新人',
+  PRIMARY KEY (`id`) USING BTREE,
+  UNIQUE INDEX `uk_setting_key`(`setting_key` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_unicode_ci ROW_FORMAT = Dynamic;
+
+-- 插入默认系统设置
+INSERT INTO `settings` (setting_key, setting_value, description) VALUES
+('export', '{"companyName":"公司名称","address":"公司地址","phone":"联系电话"}', '导出配置'),
+('autoBackup', '{"enabled":false,"retention":5}', '自动备份配置');
+
+SET FOREIGN_KEY_CHECKS = 1;
 
 SET FOREIGN_KEY_CHECKS = 1;

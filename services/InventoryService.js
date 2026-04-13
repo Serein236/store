@@ -375,10 +375,19 @@ const InventoryService = {
         }
     },
 
+    // 获取北京时间（UTC+8）的格式化时间字符串
+    getBeijingTimestamp() {
+        const now = new Date();
+        // 转换为北京时间（UTC+8）
+        const beijingTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+        return beijingTime.toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    },
+
     // 创建备份
     async createBackup(createdBy) {
         const backupDir = path.join(process.cwd(), 'backup');
-        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        // 使用北京时间生成文件名时间戳
+        const timestamp = this.getBeijingTimestamp();
         const fileName = `warehouse_backup_${timestamp}.sql`;
         const filePath = path.join(backupDir, fileName);
 
@@ -412,10 +421,15 @@ const InventoryService = {
             const stats = fsSync.statSync(filePath);
             const fileSize = (stats.size / 1024 / 1024).toFixed(2); // MB
 
+            // 获取北京时间作为创建时间（格式：YYYY-MM-DD HH:MM:SS）
+            const now = new Date();
+            const beijingTime = new Date(now.getTime() + (8 * 60 * 60 * 1000));
+            const beijingTimeStr = beijingTime.toISOString().replace('T', ' ').slice(0, 19);
+
             // 保存备份记录到数据库
             await dbUtils.insert(
-                'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at) VALUES (?, ?, ?, ?, NOW())',
-                [fileName, filePath, fileSize, createdBy]
+                'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
+                [fileName, filePath, fileSize, createdBy, beijingTimeStr]
             );
 
             return { success: true, fileName, fileSize };
@@ -468,18 +482,25 @@ const InventoryService = {
                     const stats = fsSync.statSync(filePath);
                     const fileSize = (stats.size / 1024 / 1024).toFixed(2); // MB
 
-                    // 从文件名尝试解析时间戳
-                    let createdAt = new Date(stats.mtime); // 使用文件修改时间作为默认
-                    const match = fileName.match(/warehouse_backup_(\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2})/);
+                    // 从文件名解析北京时间（文件名格式：warehouse_backup_YYYY-MM-DDTHH-MM-SS.sql）
+                    let createdAtStr;
+                    const match = fileName.match(/warehouse_backup_(\d{4}-\d{2}-\d{2})T(\d{2}-\d{2}-\d{2})/);
                     if (match) {
-                        const timestamp = match[1].replace(/-/g, ':').replace('T', ' ');
-                        createdAt = new Date(timestamp);
+                        // 将文件名中的时间转换为数据库格式：YYYY-MM-DD HH:MM:SS
+                        const datePart = match[1]; // YYYY-MM-DD
+                        const timePart = match[2].replace(/-/g, ':'); // HH:MM:SS
+                        createdAtStr = `${datePart} ${timePart}`;
+                    } else {
+                        // 如果解析失败，使用文件修改时间并转换为北京时间
+                        const mtime = new Date(stats.mtime);
+                        const beijingMtime = new Date(mtime.getTime() + (8 * 60 * 60 * 1000));
+                        createdAtStr = beijingMtime.toISOString().replace('T', ' ').slice(0, 19);
                     }
 
-                    // 插入数据库记录
+                    // 插入数据库记录（使用'扫描同步'作为创建者标识）
                     await dbUtils.insert(
                         'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
-                        [fileName, filePath, fileSize, 'system', createdAt]
+                        [fileName, filePath, fileSize, '扫描同步', createdAtStr]
                     );
 
                     console.log(`同步备份文件到数据库: ${fileName}`);

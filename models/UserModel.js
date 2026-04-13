@@ -12,21 +12,23 @@ const UserModel = {
 
     async findAll() {
         return await dbUtils.query(
-            'SELECT id, username, role, is_active, created_at FROM users ORDER BY created_at DESC'
+            'SELECT id, username, display_name, role, is_active, created_at FROM users ORDER BY created_at DESC'
         );
     },
 
     async create(userData) {
-        const { username, password, role = 'user' } = userData;
+        const { username, password, role = 'user', display_name } = userData;
+        // 如果没有提供 display_name，使用 username 作为默认值
+        const finalDisplayName = display_name || username;
         const result = await dbUtils.insert(
-            'INSERT INTO users (username, password, role, is_active, created_at) VALUES (?, ?, ?, true, NOW())',
-            [username, password, role]
+            'INSERT INTO users (username, display_name, password, role, is_active, created_at) VALUES (?, ?, ?, ?, true, NOW())',
+            [username, finalDisplayName, password, role]
         );
         return result;
     },
 
     async update(id, userData) {
-        const { username, role, is_active } = userData;
+        const { username, role, is_active, display_name } = userData;
         const fields = [];
         const values = [];
 

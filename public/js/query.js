@@ -266,7 +266,7 @@ async function checkLogin() {
 
         async function logout() {
             try {
-                await fetch('/api/auth/logout');
+                await fetch('/api/auth/logout', { method: 'POST' });
                 window.location.href = 'login.html';
             } catch (error) {
                 console.error('退出登录失败:', error);

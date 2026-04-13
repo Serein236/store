@@ -4,7 +4,7 @@ const authController = require('../controllers/authController');
 const { requireAdmin } = require('../middleware/auth');
 
 router.post('/login', authController.login);
-router.get('/logout', authController.logout);
+router.post('/logout', authController.logout);
 router.get('/current-user', authController.getCurrentUser);
 
 // 用户管理API（仅管理员）

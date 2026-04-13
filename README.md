@@ -1,6 +1,8 @@
 # 仓库管理系统
 
-一个基于 Node.js + Express + MySQL 的仓库进销存管理系统，支持商品管理、入库出库、库存查询、记录导出等功能。
+一个基于 Node.js + Express + MySQL 的仓库进销存管理系统，支持商品管理、入库出库、库存查询、记录导出、数据备份、用户管理等功能。
+
+[![License](https://img.shields.io/badge/License-MulanPSL--2.0-blue.svg)](http://license.coscl.org.cn/MulanPSL2)
 
 ## 功能特性
 
@@ -12,10 +14,13 @@
 - **记录导出**：支持 CSV 和 Excel 格式导出，带格式销售出库单
 
 ### 系统特性
-- **用户认证**：基于 Session 的登录/登出机制
+- **用户认证**：基于 Session 的登录/登出机制，支持管理员和普通用户角色
+- **用户管理**：管理员可新增、删除、启用/禁用用户，编辑用户密码
+- **数据备份**：手动备份、自动备份、清理前自动备份，支持备份恢复
 - **自动完成**：供应商、客户、产品批号模糊搜索，支持键盘导航
 - **智能表单**：重复提交防护、必填字段验证、自动计算金额
 - **响应式设计**：基于 Bootstrap 5 的移动端适配界面
+- **系统设置**：导出配置、密码修改、数据管理、用户管理
 
 ## 技术栈
 
@@ -60,6 +65,18 @@ module.exports = {
 4. **初始化数据库**
 执行 `sql/store.sql` 中的 SQL 脚本创建表结构和初始数据。
 
+如需更新现有数据库表结构，执行以下 SQL：
+```sql
+-- 更新 users 表添加用户管理字段
+ALTER TABLE users 
+    ADD COLUMN role VARCHAR(20) DEFAULT 'user' COMMENT '角色',
+    ADD COLUMN is_active BOOLEAN DEFAULT TRUE COMMENT '是否启用';
+
+-- 更新 backups 表添加备份类型字段
+ALTER TABLE backups 
+    ADD COLUMN backup_type VARCHAR(20) DEFAULT 'manual' COMMENT '备份类型';
+```
+
 5. **启动服务**
 ```bash
 npm start
@@ -87,6 +104,7 @@ store/
 │   ├── InRecordModel.js    # 入库记录
 │   ├── OutRecordModel.js   # 出库记录
 │   ├── ProductModel.js     # 商品
+│   ├── UserModel.js        # 用户
 │   └── ...
 ├── public/                 # 静态资源
 │   ├── css/                # 样式文件
@@ -94,6 +112,7 @@ store/
 │   │   ├── in.js           # 入库管理
 │   │   ├── out.js          # 出库管理
 │   │   ├── out_records.js  # 出库记录导出
+│   │   ├── settings.js     # 系统设置
 │   │   └── ...
 │   ├── *.html              # 页面模板
 │   └── in.html             # 入库页面
@@ -109,8 +128,10 @@ store/
 │   ├── dbUtils.js
 │   ├── dataUtils.js
 │   └── logger.js
+├── backup/                 # 备份文件目录（自动创建）
 ├── store.js                # 入口文件
-└── package.json
+├── package.json
+└── LICENSE                 # 木兰许可证
 ```
 
 ## 主要页面
@@ -127,6 +148,7 @@ store/
 | 出库记录 | `/out_records.html` | 查看、导出出库单 |
 | 库存查看 | `/stock.html` | 库存总览 |
 | 库存查询 | `/query.html` | 按商品/月份查询 |
+| 系统设置 | `/settings.html` | 导出配置、密码修改、数据备份、用户管理 |
 
 ## API 接口
 
@@ -149,6 +171,26 @@ store/
 - `GET /api/suppliers?query=` - 供应商搜索
 - `GET /api/customers?query=` - 客户搜索
 
+### 系统设置
+- `GET /api/settings` - 获取系统设置
+- `PUT /api/settings` - 更新系统设置
+- `POST /api/change-password` - 修改密码
+
+### 数据备份
+- `GET /api/backups` - 获取备份列表
+- `POST /api/backups` - 创建手动备份
+- `POST /api/backups/:id/restore` - 恢复备份
+- `DELETE /api/backups/:id` - 删除备份
+- `POST /api/cleanup` - 清理数据（自动创建删除前备份）
+
+### 用户管理（仅管理员）
+- `GET /api/auth/users` - 获取用户列表
+- `POST /api/auth/users` - 创建用户
+- `PUT /api/auth/users/:id` - 修改用户密码
+- `DELETE /api/auth/users/:id` - 删除用户
+- `POST /api/auth/users/:id/toggle` - 启用/禁用用户
+- `GET /api/auth/check-admin` - 检查是否为管理员
+
 ## 数据库表结构
 
 主要表：
@@ -157,6 +199,8 @@ store/
 - `in_records` - 入库记录
 - `out_records` - 出库记录
 - `stock_methods` - 出入库方式
+- `settings` - 系统设置
+- `backups` - 备份记录（支持手动/自动/删除前备份）
 
 ## 导出功能
 
@@ -175,10 +219,13 @@ store/
 - SQL 注入防护（使用参数化查询）
 - XSS 基础防护
 
-## 开发计划
+## 最近更新
 
+- [x] 用户管理功能（管理员可管理用户、修改密码）
+- [x] 数据备份/恢复（手动备份、自动备份、清理前备份）
+- [x] 系统设置页面（导出设置、安全设置、数据管理）
+- [x] 退出登录功能修复
 - [ ] 库存盘点功能
-- [ ] 数据备份/恢复
 - [ ] 多仓库支持
 - [ ] 操作日志审计
 - [ ] 条码扫描支持
@@ -189,4 +236,6 @@ store/
 
 ## 许可证
 
-MIT License
+本项目采用 [木兰宽松许可证 第2版（MulanPSL-2.0）](http://license.coscl.org.cn/MulanPSL2) 开源许可。
+
+木兰宽松许可证是一个中英文双语、 permissive 类型的开源许可证，具有与 Apache-2.0 类似的兼容性，但更便于中国开发者理解和使用。

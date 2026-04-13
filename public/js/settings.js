@@ -230,31 +230,27 @@ async function backupData() {
     }
 }
 
-// 数据清理
+// 数据清理（清理前会自动创建备份）
 async function cleanupData() {
-    const cleanupDate = document.getElementById('cleanupDate').value;
-
-    if (!cleanupDate) {
-        alert('请选择要清理的截止日期');
-        return;
-    }
-
-    const confirmCleanup = confirm(`警告：这将永久删除 ${cleanupDate} 之前的所有出入库记录！\n\n确定要继续吗？`);
+    const confirmCleanup = confirm('警告：这将永久删除所有入库记录、出库记录和库存数据！\n\n确定要继续吗？');
     if (!confirmCleanup) return;
 
-    const doubleConfirm = confirm('再次确认：数据删除后无法恢复，是否继续？');
+    const doubleConfirm = confirm('再次确认：数据删除后无法恢复，但已自动创建备份。是否继续？');
     if (!doubleConfirm) return;
 
     try {
-        const response = await fetch(`/api/cleanup?date=${cleanupDate}`, {
-            method: 'DELETE'
+        const response = await fetch('/api/cleanup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
         });
 
-        if (response.ok) {
-            const result = await response.json();
-            alert(`数据清理完成！\n已删除 ${result.deletedCount || 0} 条记录`);
+        const result = await response.json();
+
+        if (response.ok && result.success) {
+            alert(`数据清理完成！\n已自动创建备份: ${result.backupFile}`);
+            loadBackupList(); // 刷新备份列表
         } else {
-            alert('数据清理失败，请稍后重试');
+            alert('数据清理失败: ' + (result.message || '请稍后重试'));
         }
     } catch (error) {
         console.error('数据清理失败:', error);
@@ -361,9 +357,24 @@ async function loadBackupList() {
 
         emptyDiv.classList.add('d-none');
 
-        tbody.innerHTML = backups.map(backup => `
+        tbody.innerHTML = backups.map(backup => {
+            // 根据备份类型显示不同的标签
+            let typeBadge = '';
+            switch(backup.backup_type) {
+                case 'auto':
+                    typeBadge = '<span class="badge bg-info">自动</span>';
+                    break;
+                case 'pre_delete':
+                    typeBadge = '<span class="badge bg-warning">删除前</span>';
+                    break;
+                case 'manual':
+                default:
+                    typeBadge = '<span class="badge bg-secondary">手动</span>';
+                    break;
+            }
+            return `
             <tr>
-                <td>${backup.file_name}</td>
+                <td>${backup.file_name} ${typeBadge}</td>
                 <td>${backup.file_size} MB</td>
                 <td>${backup.created_by || '-'}</td>
                 <td>${new Date(backup.created_at).toLocaleString()}</td>
@@ -379,7 +390,7 @@ async function loadBackupList() {
                     </button>
                 </td>
             </tr>
-        `).join('');
+        `}).join('');
     } catch (error) {
         console.error('加载备份列表失败:', error);
     }

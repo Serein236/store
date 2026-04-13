@@ -456,7 +456,8 @@ const inventoryController = {
     async createBackup(req, res) {
         const username = req.session?.username || '未登录用户';
         try {
-            const result = await InventoryService.createBackup(username);
+            // 手动备份，类型为'manual'
+            const result = await InventoryService.createBackup(username, 'manual');
             res.json(result);
         } catch (error) {
             console.error('创建备份错误:', error);
@@ -561,6 +562,36 @@ const inventoryController = {
             console.error('修改密码错误:', error);
             logger.error('修改密码失败', { username, error: error.message });
             res.status(500).json({ success: false, message: '修改密码失败' });
+        }
+    },
+
+    // 清理数据（清理前会自动备份）
+    async cleanupData(req, res) {
+        const username = req.session?.username || '未登录用户';
+        try {
+            // 先创建删除前备份（pre_delete类型，不受自动备份上限限制）
+            console.log('清理数据前自动创建备份...');
+            const backupResult = await InventoryService.createBackup(username, 'pre_delete');
+            console.log('删除前备份创建成功:', backupResult.fileName);
+
+            // 执行数据清理
+            const result = await InventoryService.clearAllData();
+
+            logger.info('数据清理成功', {
+                username,
+                backupFile: backupResult.fileName,
+                timestamp: new Date().toISOString()
+            });
+
+            res.json({
+                success: true,
+                message: '数据清理成功，已自动备份',
+                backupFile: backupResult.fileName
+            });
+        } catch (error) {
+            console.error('清理数据错误:', error);
+            logger.error('清理数据失败', { username, error: error.message });
+            res.status(500).json({ success: false, message: '清理数据失败: ' + error.message });
         }
     }
 };

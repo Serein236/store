@@ -34,4 +34,7 @@ router.post('/auto-backup-config', inventoryController.saveAutoBackupConfig);
 // 密码修改API
 router.post('/change-password', inventoryController.changePassword);
 
+// 数据清理API（清理前会自动备份）
+router.post('/cleanup', inventoryController.cleanupData);
+
 module.exports = router;

@@ -384,11 +384,27 @@ const InventoryService = {
     },
 
     // 创建备份
-    async createBackup(createdBy) {
+    // backupType: 'manual' | 'auto' | 'pre_delete'
+    async createBackup(createdBy, backupType = 'manual') {
         const backupDir = path.join(process.cwd(), 'backup');
         // 使用北京时间生成文件名时间戳
         const timestamp = this.getBeijingTimestamp();
-        const fileName = `warehouse_backup_${timestamp}.sql`;
+
+        // 根据备份类型生成不同的文件名前缀
+        let fileNamePrefix;
+        switch (backupType) {
+            case 'auto':
+                fileNamePrefix = 'warehouse_auto_backup';
+                break;
+            case 'pre_delete':
+                fileNamePrefix = 'warehouse_pre_delete_backup';
+                break;
+            case 'manual':
+            default:
+                fileNamePrefix = 'warehouse_manual_backup';
+                break;
+        }
+        const fileName = `${fileNamePrefix}_${timestamp}.sql`;
         const filePath = path.join(backupDir, fileName);
 
         // 确保备份目录存在
@@ -428,9 +444,14 @@ const InventoryService = {
 
             // 保存备份记录到数据库
             await dbUtils.insert(
-                'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
-                [fileName, filePath, fileSize, createdBy, beijingTimeStr]
+                'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at, backup_type) VALUES (?, ?, ?, ?, ?, ?)',
+                [fileName, filePath, fileSize, createdBy, beijingTimeStr, backupType]
             );
+
+            // 如果是自动备份，检查并清理旧的自动备份
+            if (backupType === 'auto') {
+                await this.cleanupOldAutoBackups();
+            }
 
             return { success: true, fileName, fileSize };
         } catch (error) {
@@ -442,6 +463,46 @@ const InventoryService = {
         }
     },
 
+    // 清理旧的自动备份（保留数量由配置决定）
+    async cleanupOldAutoBackups() {
+        try {
+            // 获取自动备份配置
+            const settings = await this.getSettings();
+            const config = settings?.autoBackup;
+
+            if (!config || !config.enabled || !config.retention) {
+                return; // 没有配置或禁用则不清理
+            }
+
+            const retentionCount = parseInt(config.retention);
+            if (isNaN(retentionCount) || retentionCount < 1) {
+                return;
+            }
+
+            // 获取所有自动备份，按时间排序
+            const autoBackups = await dbUtils.query(
+                'SELECT id, file_name, file_path FROM backups WHERE backup_type = ? ORDER BY created_at DESC',
+                ['auto']
+            );
+
+            // 如果自动备份数量超过保留上限，删除最旧的
+            if (autoBackups.length > retentionCount) {
+                const backupsToDelete = autoBackups.slice(retentionCount);
+                for (const backup of backupsToDelete) {
+                    // 删除文件
+                    if (fsSync.existsSync(backup.file_path)) {
+                        fsSync.unlinkSync(backup.file_path);
+                    }
+                    // 删除数据库记录
+                    await dbUtils.update('DELETE FROM backups WHERE id = ?', [backup.id]);
+                    console.log(`清理旧自动备份: ${backup.file_name}`);
+                }
+            }
+        } catch (error) {
+            console.error('清理旧自动备份失败:', error);
+        }
+    },
+
     // 获取备份列表
     async getBackupList() {
         try {
@@ -449,7 +510,7 @@ const InventoryService = {
             await this.syncBackupsFromFolder();
 
             const backups = await dbUtils.query(
-                'SELECT id, file_name, file_size, created_by, created_at FROM backups ORDER BY created_at DESC'
+                'SELECT id, file_name, file_size, created_by, created_at, backup_type FROM backups ORDER BY created_at DESC'
             );
             return backups || [];
         } catch (error) {
@@ -482,25 +543,50 @@ const InventoryService = {
                     const stats = fsSync.statSync(filePath);
                     const fileSize = (stats.size / 1024 / 1024).toFixed(2); // MB
 
-                    // 从文件名解析北京时间（文件名格式：warehouse_backup_YYYY-MM-DDTHH-MM-SS.sql）
+                    // 从文件名解析备份类型和时间（文件名格式：warehouse_manual_backup_YYYY-MM-DDTHH-MM-SS.sql）
                     let createdAtStr;
-                    const match = fileName.match(/warehouse_backup_(\d{4}-\d{2}-\d{2})T(\d{2}-\d{2}-\d{2})/);
-                    if (match) {
-                        // 将文件名中的时间转换为数据库格式：YYYY-MM-DD HH:MM:SS
-                        const datePart = match[1]; // YYYY-MM-DD
-                        const timePart = match[2].replace(/-/g, ':'); // HH:MM:SS
+                    let backupType = 'manual'; // 默认类型
+
+                    // 匹配不同类型的备份文件名
+                    const manualMatch = fileName.match(/warehouse_manual_backup_(\d{4}-\d{2}-\d{2})T(\d{2}-\d{2}-\d{2})/);
+                    const autoMatch = fileName.match(/warehouse_auto_backup_(\d{4}-\d{2}-\d{2})T(\d{2}-\d{2}-\d{2})/);
+                    const preDeleteMatch = fileName.match(/warehouse_pre_delete_backup_(\d{4}-\d{2}-\d{2})T(\d{2}-\d{2}-\d{2})/);
+
+                    if (manualMatch) {
+                        backupType = 'manual';
+                        const datePart = manualMatch[1];
+                        const timePart = manualMatch[2].replace(/-/g, ':');
+                        createdAtStr = `${datePart} ${timePart}`;
+                    } else if (autoMatch) {
+                        backupType = 'auto';
+                        const datePart = autoMatch[1];
+                        const timePart = autoMatch[2].replace(/-/g, ':');
+                        createdAtStr = `${datePart} ${timePart}`;
+                    } else if (preDeleteMatch) {
+                        backupType = 'pre_delete';
+                        const datePart = preDeleteMatch[1];
+                        const timePart = preDeleteMatch[2].replace(/-/g, ':');
                         createdAtStr = `${datePart} ${timePart}`;
                     } else {
-                        // 如果解析失败，使用文件修改时间并转换为北京时间
-                        const mtime = new Date(stats.mtime);
-                        const beijingMtime = new Date(mtime.getTime() + (8 * 60 * 60 * 1000));
-                        createdAtStr = beijingMtime.toISOString().replace('T', ' ').slice(0, 19);
+                        // 兼容旧格式：warehouse_backup_YYYY-MM-DDTHH-MM-SS.sql
+                        const oldMatch = fileName.match(/warehouse_backup_(\d{4}-\d{2}-\d{2})T(\d{2}-\d{2}-\d{2})/);
+                        if (oldMatch) {
+                            backupType = 'manual';
+                            const datePart = oldMatch[1];
+                            const timePart = oldMatch[2].replace(/-/g, ':');
+                            createdAtStr = `${datePart} ${timePart}`;
+                        } else {
+                            // 如果解析失败，使用文件修改时间并转换为北京时间
+                            const mtime = new Date(stats.mtime);
+                            const beijingMtime = new Date(mtime.getTime() + (8 * 60 * 60 * 1000));
+                            createdAtStr = beijingMtime.toISOString().replace('T', ' ').slice(0, 19);
+                        }
                     }
 
                     // 插入数据库记录（使用'扫描同步'作为创建者标识）
                     await dbUtils.insert(
-                        'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at) VALUES (?, ?, ?, ?, ?)',
-                        [fileName, filePath, fileSize, '扫描同步', createdAtStr]
+                        'INSERT INTO backups (file_name, file_path, file_size, created_by, created_at, backup_type) VALUES (?, ?, ?, ?, ?, ?)',
+                        [fileName, filePath, fileSize, '扫描同步', createdAtStr, backupType]
                     );
 
                     console.log(`同步备份文件到数据库: ${fileName}`);
@@ -540,6 +626,50 @@ const InventoryService = {
         // 删除数据库记录
         await dbUtils.update('DELETE FROM backups WHERE id = ?', [id]);
         return { success: true };
+    },
+
+    // 清理所有数据（入库记录、出库记录、库存记录，但保留商品信息和备份记录）
+    async clearAllData() {
+        try {
+            // 使用事务执行清理
+            await dbUtils.executeTransaction(async (connection) => {
+                // 清理入库记录
+                await connection.execute('DELETE FROM in_records');
+                // 清理出库记录
+                await connection.execute('DELETE FROM out_records');
+                // 重置库存数量为0
+                await connection.execute('UPDATE products SET stock = 0');
+                // 清理批次库存
+                await connection.execute('DELETE FROM batch_stock');
+            });
+            return { success: true };
+        } catch (error) {
+            console.error('清理数据失败:', error);
+            throw error;
+        }
+    },
+
+    // 获取自动备份配置
+    async getAutoBackupConfig() {
+        try {
+            const settings = await this.getSettings();
+            return settings?.autoBackup || { enabled: false, retention: 5 };
+        } catch (error) {
+            console.error('获取自动备份配置失败:', error);
+            return { enabled: false, retention: 5 };
+        }
+    },
+
+    // 保存自动备份配置
+    async saveAutoBackupConfig(config) {
+        try {
+            const settings = await this.getSettings() || {};
+            settings.autoBackup = config;
+            return await this.saveSettings(settings);
+        } catch (error) {
+            console.error('保存自动备份配置失败:', error);
+            throw error;
+        }
     },
 
     // 恢复备份

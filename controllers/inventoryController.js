@@ -675,6 +675,108 @@ const inventoryController = {
             logger.error('清理数据失败', { operator: username, operatorId: userId, error: error.message });
             res.status(500).json({ success: false, message: '数据清理失败: ' + error.message });
         }
+    },
+
+    // 获取所有出入库方式（管理员）
+    async getAllStockMethods(req, res) {
+        const username = req.session?.username;
+        const userId = req.session?.userId;
+        try {
+            const methods = await StockMethodModel.findAll();
+            res.json({ success: true, methods });
+        } catch (error) {
+            console.error('获取出入库方式列表错误:', error);
+            logger.error('获取出入库方式列表失败', { operator: username, operatorId: userId, error: error.message });
+            res.status(500).json({ success: false, message: '获取出入库方式列表失败' });
+        }
+    },
+
+    // 创建出入库方式（管理员）
+    async createStockMethod(req, res) {
+        const username = req.session?.username;
+        const userId = req.session?.userId;
+        const { type, method_name } = req.body;
+
+        if (!type || !method_name) {
+            return res.status(400).json({ success: false, message: '类型和方式名称不能为空' });
+        }
+
+        if (!['in', 'out'].includes(type)) {
+            return res.status(400).json({ success: false, message: '类型必须是 in 或 out' });
+        }
+
+        try {
+            // 检查是否已存在
+            const existing = await StockMethodModel.findByMethodName(method_name);
+            if (existing) {
+                return res.status(400).json({ success: false, message: '该方式名称已存在' });
+            }
+
+            const result = await StockMethodModel.create({ type, method_name });
+            logger.info('创建出入库方式', {
+                operator: username,
+                operatorId: userId,
+                target: method_name,
+                description: `创建${type === 'in' ? '入库' : '出库'}方式`,
+                extra: { id: result.id, type, method_name }
+            });
+            res.json({ success: true, message: '创建成功', method: result });
+        } catch (error) {
+            console.error('创建出入库方式错误:', error);
+            logger.error('创建出入库方式失败', { operator: username, operatorId: userId, type, method_name, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '创建出入库方式失败' });
+        }
+    },
+
+    // 更新出入库方式（管理员）
+    async updateStockMethod(req, res) {
+        const username = req.session?.username;
+        const userId = req.session?.userId;
+        const { id } = req.params;
+        const { type, method_name } = req.body;
+
+        if (!type || !method_name) {
+            return res.status(400).json({ success: false, message: '类型和方式名称不能为空' });
+        }
+
+        try {
+            const result = await StockMethodModel.update(id, { type, method_name });
+            logger.info('更新出入库方式', {
+                operator: username,
+                operatorId: userId,
+                target: method_name,
+                description: `修改${type === 'in' ? '入库' : '出库'}方式`,
+                extra: { id: parseInt(id), type, method_name, oldMethodName: result.oldMethodName }
+            });
+            res.json({ success: true, message: '更新成功', method: { id: parseInt(id), type, method_name } });
+        } catch (error) {
+            console.error('更新出入库方式错误:', error);
+            logger.error('更新出入库方式失败', { operator: username, operatorId: userId, id, type, method_name, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '更新出入库方式失败' });
+        }
+    },
+
+    // 删除出入库方式（管理员）
+    async deleteStockMethod(req, res) {
+        const username = req.session?.username;
+        const userId = req.session?.userId;
+        const { id } = req.params;
+
+        try {
+            const method = await StockMethodModel.delete(id);
+            logger.info('删除出入库方式', {
+                operator: username,
+                operatorId: userId,
+                target: method.method_name,
+                description: `删除${method.type === 'in' ? '入库' : '出库'}方式`,
+                extra: { id: parseInt(id), type: method.type, method_name: method.method_name }
+            });
+            res.json({ success: true, message: '删除成功' });
+        } catch (error) {
+            console.error('删除出入库方式错误:', error);
+            logger.error('删除出入库方式失败', { operator: username, operatorId: userId, id, error: error.message });
+            res.status(500).json({ success: false, message: error.message || '删除出入库方式失败' });
+        }
     }
 };
 

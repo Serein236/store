@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const inventoryController = require('../controllers/inventoryController');
+const { requireAdmin } = require('../middleware/auth');
 
 router.post('/in', inventoryController.inStock);
 router.post('/out', inventoryController.outStock);
@@ -18,6 +19,12 @@ router.get('/product-batches/:productId', inventoryController.getProductBatches)
 router.get('/suppliers', inventoryController.getSuppliers);
 router.get('/customers', inventoryController.getCustomers);
 router.get('/out-records/:id', inventoryController.getOutRecordById);
+
+// 出入库方式管理API（仅管理员）
+router.get('/stock-methods-admin', requireAdmin, inventoryController.getAllStockMethods);
+router.post('/stock-methods-admin', requireAdmin, inventoryController.createStockMethod);
+router.put('/stock-methods-admin/:id', requireAdmin, inventoryController.updateStockMethod);
+router.delete('/stock-methods-admin/:id', requireAdmin, inventoryController.deleteStockMethod);
 
 // 设置API
 router.get('/settings', inventoryController.getSettings);

@@ -85,6 +85,11 @@
                     <i class="bi bi-people me-1"></i>用户管理
                 </button>
             </li>
+            <li class="nav-item d-none" role="presentation" id="stockMethodTab">
+                <button class="nav-link" id="stock-method-tab" data-bs-toggle="pill" data-bs-target="#stock-method" type="button" role="tab">
+                    <i class="bi bi-arrows-move me-1"></i>出入库方式
+                </button>
+            </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="logs-tab" data-bs-toggle="pill" data-bs-target="#logs" type="button" role="tab">
                     <i class="bi bi-journal-text me-1"></i>日志查看
@@ -595,6 +600,44 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 出入库方式管理（仅管理员可见） -->
+            <div class="tab-pane fade" id="stock-method" role="tabpanel">
+                <div class="card settings-card border-info">
+                    <div class="card-header bg-info text-white">
+                        <i class="bi bi-arrows-move me-2"></i>出入库方式管理
+                        <span class="badge bg-light text-info ms-2">管理员专用</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="text-muted mb-0">管理入库和出库方式，用于出入库操作时的方式选择</p>
+                            <button class="btn btn-info" onclick="showAddStockMethodModal()">
+                                <i class="bi bi-plus-circle me-2"></i>新增方式
+                            </button>
+                        </div>
+
+                        <!-- 出入库方式列表 -->
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="bg-secondary">
+                                    <tr>
+                                        <th class="text-black">ID</th>
+                                        <th class="text-black">类型</th>
+                                        <th class="text-black">方式名称</th>
+                                        <th class="text-black">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stockMethodListBody">
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="stockMethodListEmpty" class="text-center text-muted py-3 d-none">
+                            <i class="bi bi-inbox fs-1"></i>
+                            <p>暂无出入库方式数据</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -650,6 +693,36 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-primary" onclick="saveUser()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑出入库方式模态框 -->
+    <div class="modal fade" id="stockMethodModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="stockMethodModalTitle">新增出入库方式</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="stockMethodId">
+                    <div class="mb-3">
+                        <label for="stockMethodType" class="form-label">类型 <span class="text-danger">*</span></label>
+                        <select class="form-select" id="stockMethodType">
+                            <option value="in">入库方式</option>
+                            <option value="out">出库方式</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stockMethodName" class="form-label">方式名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="stockMethodName" placeholder="请输入方式名称（如：采购入库、销售出库等）">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-info" onclick="saveStockMethod()">保存</button>
                 </div>
             </div>
         </div>

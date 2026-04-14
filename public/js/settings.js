@@ -278,6 +278,8 @@ async function checkIsAdmin() {
             document.getElementById('userManagementTab').classList.remove('d-none');
             // 加载用户列表
             loadUserList();
+            // 显示出入库方式管理选项卡
+            document.getElementById('stockMethodTab').classList.remove('d-none');
         }
     } catch (error) {
         console.error('检查管理员权限失败:', error);
@@ -1023,4 +1025,141 @@ document.addEventListener('shown.bs.tab', function (event) {
     if (event.target.id === 'logs-tab') {
         loadLogs();
     }
+    if (event.target.id === 'stock-method-tab') {
+        loadStockMethodList();
+    }
 });
+
+// ============================================
+// 出入库方式管理功能
+// ============================================
+
+let stockMethodModal = null;
+
+// 加载出入库方式列表
+async function loadStockMethodList() {
+    try {
+        const response = await fetch('/api/stock-methods-admin');
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(data.message || '加载失败');
+        }
+
+        const tbody = document.getElementById('stockMethodListBody');
+        const emptyDiv = document.getElementById('stockMethodListEmpty');
+
+        if (data.methods.length === 0) {
+            tbody.innerHTML = '';
+            emptyDiv.classList.remove('d-none');
+            return;
+        }
+
+        emptyDiv.classList.add('d-none');
+        tbody.innerHTML = data.methods.map(method => `
+            <tr>
+                <td>${method.id}</td>
+                <td>
+                    <span class="badge bg-${method.type === 'in' ? 'success' : 'warning'}">
+                        ${method.type === 'in' ? '入库' : '出库'}
+                    </span>
+                </td>
+                <td>${method.method_name}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary me-1" onclick="showEditStockMethodModal(${method.id}, '${method.type}', '${method.method_name}')">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteStockMethod(${method.id}, '${method.method_name}')">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('加载出入库方式列表失败:', error);
+        alert('加载出入库方式列表失败: ' + error.message);
+    }
+}
+
+// 显示新增出入库方式模态框
+function showAddStockMethodModal() {
+    document.getElementById('stockMethodId').value = '';
+    document.getElementById('stockMethodType').value = 'in';
+    document.getElementById('stockMethodName').value = '';
+    document.getElementById('stockMethodModalTitle').textContent = '新增出入库方式';
+
+    stockMethodModal = new bootstrap.Modal(document.getElementById('stockMethodModal'));
+    stockMethodModal.show();
+}
+
+// 显示编辑出入库方式模态框
+function showEditStockMethodModal(id, type, methodName) {
+    document.getElementById('stockMethodId').value = id;
+    document.getElementById('stockMethodType').value = type;
+    document.getElementById('stockMethodName').value = methodName;
+    document.getElementById('stockMethodModalTitle').textContent = '编辑出入库方式';
+
+    stockMethodModal = new bootstrap.Modal(document.getElementById('stockMethodModal'));
+    stockMethodModal.show();
+}
+
+// 保存出入库方式（新增或编辑）
+async function saveStockMethod() {
+    const id = document.getElementById('stockMethodId').value;
+    const type = document.getElementById('stockMethodType').value;
+    const methodName = document.getElementById('stockMethodName').value.trim();
+
+    if (!methodName) {
+        alert('请输入方式名称');
+        return;
+    }
+
+    try {
+        const url = id ? `/api/stock-methods-admin/${id}` : '/api/stock-methods-admin';
+        const method = id ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type, method_name: methodName })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            stockMethodModal.hide();
+            loadStockMethodList();
+            alert(id ? '更新成功' : '创建成功');
+        } else {
+            alert(data.message || '操作失败');
+        }
+    } catch (error) {
+        console.error('保存出入库方式失败:', error);
+        alert('保存失败: ' + error.message);
+    }
+}
+
+// 删除出入库方式
+async function deleteStockMethod(id, methodName) {
+    if (!confirm(`确定要删除出入库方式 "${methodName}" 吗？\n注意：如果该方式已被使用，将无法删除。`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/stock-methods-admin/${id}`, {
+            method: 'DELETE'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            loadStockMethodList();
+            alert('删除成功');
+        } else {
+            alert(data.message || '删除失败');
+        }
+    } catch (error) {
+        console.error('删除出入库方式失败:', error);
+        alert('删除失败: ' + error.message);
+    }
+}

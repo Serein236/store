@@ -14,5 +14,6 @@ router.put('/users/:id', requireAdmin, authController.updateUser);
 router.delete('/users/:id', requireAdmin, authController.deleteUser);
 router.post('/users/:id/toggle', requireAdmin, authController.toggleUserStatus);
 router.get('/check-admin', authController.checkAdmin);
+router.get('/check-default-admin', authController.checkDefaultAdmin);
 
 module.exports = router;

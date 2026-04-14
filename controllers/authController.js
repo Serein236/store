@@ -11,7 +11,7 @@ const authController = {
             const user = await UserModel.findByUsername(username);
 
             if (!user) {
-                logger.warn('登录失败：用户不存在', { username, timestamp: new Date().toISOString() });
+                logger.warn('登录失败', { operator: username, description: '用户不存在' });
                 return res.json({
                     success: false,
                     message: '用户不存在'
@@ -20,7 +20,7 @@ const authController = {
 
             // 检查用户是否被禁用
             if (user.is_active === false || user.is_active === 0) {
-                logger.warn('登录失败：用户已被禁用', { username, timestamp: new Date().toISOString() });
+                logger.warn('登录失败', { operator: username, operatorId: user.id, description: '用户已被禁用' });
                 return res.json({
                     success: false,
                     message: '账号已被禁用，请联系管理员'
@@ -35,7 +35,7 @@ const authController = {
                 logger.login(user.username, user.id);
                 res.json({ success: true, role: user.role });
             } else {
-                logger.warn('登录失败：密码错误', { username, timestamp: new Date().toISOString() });
+                logger.warn('登录失败', { operator: username, operatorId: user.id, description: '密码错误' });
                 res.json({
                     success: false,
                     message: '密码错误'
@@ -43,7 +43,7 @@ const authController = {
             }
         } catch (error) {
             console.error('登录错误:', error);
-            logger.error('登录失败', { username, error: error.message });
+            logger.error('登录失败', { operator: username, error: error.message });
             res.status(500).json({
                 success: false,
                 message: '服务器错误'
@@ -76,17 +76,21 @@ const authController = {
             res.json({ isAdmin });
         } catch (error) {
             console.error('检查管理员权限错误:', error);
+            logger.error('检查管理员权限失败', { operator: req.session?.username, operatorId: req.session?.userId, error: error.message });
             res.json({ isAdmin: false });
         }
     },
 
     // 获取用户列表
     async getUserList(req, res) {
+        const username = req.session?.username;
+        const userId = req.session?.userId;
         try {
             const users = await UserModel.findAll();
             res.json({ success: true, users });
         } catch (error) {
             console.error('获取用户列表错误:', error);
+            logger.error('获取用户列表失败', { operator: username, operatorId: userId, error: error.message });
             res.status(500).json({ success: false, message: '获取用户列表失败' });
         }
     },
@@ -116,10 +120,12 @@ const authController = {
 
             await UserModel.create({ username, password: hashedPassword, role });
 
-            logger.info('创建用户成功', { username, role, createdBy: req.session.username });
+            const newUser = await UserModel.findByUsername(username);
+            logger.userCreated(username, newUser.id, req.session.username, req.session.userId);
             res.json({ success: true, message: '用户创建成功' });
         } catch (error) {
             console.error('创建用户错误:', error);
+            logger.error('创建用户失败', { operator: req.session?.username, operatorId: req.session?.userId, username, role, error: error.message });
             res.status(500).json({ success: false, message: '创建用户失败' });
         }
     },
@@ -148,7 +154,7 @@ const authController = {
 
                 await UserModel.updatePassword(id, hashedPassword);
 
-                logger.info('修改用户密码成功', { userId: id, username: user.username, updatedBy: req.session.username });
+                logger.userPasswordChanged(user.username, user.id, req.session.username, req.session.userId);
                 return res.json({ success: true, message: '密码修改成功' });
             }
 
@@ -168,10 +174,11 @@ const authController = {
 
             await UserModel.update(id, { username, role });
 
-            logger.info('更新用户成功', { userId: id, username, role, updatedBy: req.session.username });
+            logger.userUpdated(username || user.username, user.id, req.session.username, req.session.userId, { username, role });
             res.json({ success: true, message: '用户更新成功' });
         } catch (error) {
             console.error('更新用户错误:', error);
+            logger.error('更新用户失败', { operator: req.session?.username, operatorId: req.session?.userId, userId: id, username, role, error: error.message });
             res.status(500).json({ success: false, message: '更新用户失败' });
         }
     },
@@ -203,10 +210,11 @@ const authController = {
 
             await UserModel.delete(id);
 
-            logger.info('删除用户成功', { userId: id, deletedBy: req.session.username });
+            logger.userDeleted(user.username, user.id, req.session.username, req.session.userId);
             res.json({ success: true, message: '用户删除成功' });
         } catch (error) {
             console.error('删除用户错误:', error);
+            logger.error('删除用户失败', { operator: req.session?.username, operatorId: req.session?.userId, userId: id, error: error.message });
             res.status(500).json({ success: false, message: '删除用户失败' });
         }
     },
@@ -239,12 +247,29 @@ const authController = {
             const newStatus = !user.is_active;
             await UserModel.update(id, { is_active: newStatus });
 
-            const statusText = newStatus ? '启用' : '禁用';
-            logger.info(`${statusText}用户成功`, { userId: id, updatedBy: req.session.username });
-            res.json({ success: true, message: `用户已${statusText}`, isActive: newStatus });
+            logger.userStatusChanged(user.username, user.id, newStatus, req.session.username, req.session.userId);
+            res.json({ success: true, message: `用户已${newStatus ? '启用' : '禁用'}`, isActive: newStatus });
         } catch (error) {
             console.error('切换用户状态错误:', error);
+            logger.error('切换用户状态失败', { operator: req.session?.username, operatorId: req.session?.userId, userId: id, error: error.message });
             res.status(500).json({ success: false, message: '操作失败' });
+        }
+    },
+
+    // 检查admin是否使用默认密码
+    async checkDefaultAdmin(req, res) {
+        try {
+            const admin = await UserModel.findByUsername('admin');
+            if (!admin) {
+                return res.json({ isDefault: false });
+            }
+            // 检查密码是否为 admin123 的哈希值
+            const isDefault = await bcrypt.compare('admin123', admin.password);
+            res.json({ isDefault });
+        } catch (error) {
+            console.error('检查默认管理员错误:', error);
+            logger.error('检查默认管理员失败', { operator: req.session?.username, operatorId: req.session?.userId, error: error.message });
+            res.json({ isDefault: false });
         }
     }
 };

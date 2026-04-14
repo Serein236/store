@@ -241,7 +241,13 @@ const InventoryService = {
             // 更新入库记录
             await InRecordModel.update(inRecordId, data);
 
-            return { success: true };
+            return { 
+                success: true, 
+                originalRecord,
+                newData: data,
+                quantityChanged: quantityDiff !== 0,
+                quantityDiff
+            };
         });
     },
 
@@ -333,7 +339,13 @@ const InventoryService = {
             // 更新出库记录
             await OutRecordModel.update(outRecordId, data);
 
-            return { success: true };
+            return { 
+                success: true,
+                originalRecord,
+                newData: data,
+                quantityChanged: quantityDiff !== 0,
+                quantityDiff
+            };
         });
     },
 

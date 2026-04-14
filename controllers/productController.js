@@ -5,14 +5,15 @@ const logger = require('../utils/logger');
 const productController = {
     async getAllProducts(req, res) {
         const username = req.session.username;
+        const userId = req.session.userId;
         
         try {
             const products = await ProductModel.findAll();
-            logger.info('获取商品列表', { username, productCount: products.length, timestamp: new Date().toISOString() });
+            logger.query('获取商品列表', {}, username, userId, products.length);
             res.json(products);
         } catch (error) {
             console.error('获取商品错误:', error);
-            logger.error('获取商品失败', { error: error.message });
+            logger.error('获取商品失败', { operator: username, operatorId: userId, error: error.message });
             res.status(500).json({ error: '获取商品失败' });
         }
     },
@@ -20,6 +21,7 @@ const productController = {
     async createProduct(req, res) {
         const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity } = req.body;
         const username = req.session.username;
+        const userId = req.session.userId;
         
         try {
             // 检查条形码是否已存在
@@ -37,11 +39,11 @@ const productController = {
                 name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity
             });
             
-            logger.productOperation('创建商品', product.id, name, username);
+            logger.productCreated(product.id, name, product.product_code || 'N/A', username, userId, { spec, unit, barcode, manufacturer });
             res.json({ success: true, id: product.id });
         } catch (error) {
             console.error('添加商品错误:', error);
-            logger.error('添加商品失败', { name, spec, error: error.message });
+            logger.error('添加商品失败', { operator: username, operatorId: userId, name, spec, error: error.message });
             res.status(500).json({ 
                 success: false, 
                 message: '添加商品失败' 
@@ -53,6 +55,7 @@ const productController = {
         const { id } = req.params;
         const { name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity } = req.body;
         const username = req.session.username;
+        const userId = req.session.userId;
         
         try {
             // 检查条形码是否已被其他商品使用
@@ -70,11 +73,11 @@ const productController = {
                 name, spec, unit, packing_spec, retail_price, barcode, manufacturer, warning_quantity, danger_quantity
             });
             
-            logger.productOperation('更新商品', id, name, username);
+            logger.productUpdated(id, name, barcode || 'N/A', username, userId, { spec, unit, retail_price, manufacturer });
             res.json({ success: true });
         } catch (error) {
             console.error('更新商品错误:', error);
-            logger.error('更新商品失败', { id, name, spec, error: error.message });
+            logger.error('更新商品失败', { operator: username, operatorId: userId, id, name, spec, error: error.message });
             res.status(500).json({ 
                 success: false, 
                 message: '更新商品失败' 
@@ -85,6 +88,7 @@ const productController = {
     async deleteProduct(req, res) {
         const { id } = req.params;
         const username = req.session.username;
+        const userId = req.session.userId;
         
         try {
             // 获取商品名称用于日志记录
@@ -93,11 +97,11 @@ const productController = {
             
             await ProductModel.delete(id);
             
-            logger.productOperation('删除商品', id, productName, username);
+            logger.productDeleted(id, productName, product ? product.product_code || 'N/A' : '未知', username, userId);
             res.json({ success: true });
         } catch (error) {
             console.error('删除商品错误:', error);
-            logger.error('删除商品失败', { id, error: error.message });
+            logger.error('删除商品失败', { operator: username, operatorId: userId, id, error: error.message });
             res.status(500).json({ 
                 success: false, 
                 message: '删除商品失败' 

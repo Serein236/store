@@ -1,9 +1,16 @@
-async function createDefaultAdmin() {
+async function checkDefaultAdmin() {
             try {
-                const response = await fetch('/api/auth/current-user');
-                console.log('数据库连接正常');
+                const response = await fetch('/api/auth/check-default-admin');
+                const data = await response.json();
+                // 如果不是默认密码，隐藏默认账号提示
+                if (!data.isDefault) {
+                    const hintElement = document.querySelector('.text-muted');
+                    if (hintElement) {
+                        hintElement.style.display = 'none';
+                    }
+                }
             } catch (error) {
-                console.log('首次运行可能需要初始化数据库');
+                console.log('检查默认管理员状态失败');
             }
         }
 
@@ -38,4 +45,4 @@ async function createDefaultAdmin() {
             }
         });
 
-        document.addEventListener('DOMContentLoaded', createDefaultAdmin);
+        document.addEventListener('DOMContentLoaded', checkDefaultAdmin);

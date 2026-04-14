@@ -748,3 +748,279 @@ async function toggleUserStatus(id, currentStatus) {
         alert('操作失败: ' + error.message);
     }
 }
+
+// ==================== 日志查看功能 ====================
+
+let currentLogPage = 1;
+let currentLogs = [];
+
+// 防抖函数，避免频繁请求
+let logLoadTimeout;
+function debounceLoadLogs() {
+    clearTimeout(logLoadTimeout);
+    logLoadTimeout = setTimeout(() => {
+        currentLogPage = 1; // 重置到第一页
+        loadLogs();
+    }, 300);
+}
+
+// 加载日志
+async function loadLogs() {
+    const dateFilter = document.getElementById('logDateFilter').value;
+    const levelFilter = document.getElementById('logLevelFilter').value;
+    const actionFilter = document.getElementById('logActionFilter').value;
+    const operatorFilter = document.getElementById('logOperatorFilter').value;
+    const operatorIdFilter = document.getElementById('logOperatorIdFilter').value;
+    const targetFilter = document.getElementById('logTargetFilter').value;
+    const keywordFilter = document.getElementById('logKeywordFilter').value;
+    const startTime = document.getElementById('logStartTime').value;
+    const endTime = document.getElementById('logEndTime').value;
+
+    try {
+        const params = new URLSearchParams({
+            date: dateFilter,
+            level: levelFilter,
+            page: currentLogPage,
+            pageSize: 50
+        });
+
+        if (actionFilter !== 'all') {
+            params.append('action', actionFilter);
+        }
+
+        if (operatorFilter) {
+            params.append('operator', operatorFilter);
+        }
+
+        if (operatorIdFilter) {
+            params.append('operatorId', operatorIdFilter);
+        }
+
+        if (targetFilter) {
+            params.append('target', targetFilter);
+        }
+
+        if (keywordFilter) {
+            params.append('keyword', keywordFilter);
+        }
+
+        if (startTime) {
+            params.append('startTime', startTime);
+        }
+
+        if (endTime) {
+            params.append('endTime', endTime);
+        }
+
+        const response = await fetch(`/api/logs?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success) {
+            currentLogs = data.logs;
+            displayLogs(data.logs, data.pagination);
+            updateLogPagination(data.pagination);
+            updateLogStats(data.stats);
+        }
+    } catch (error) {
+        console.error('加载日志失败:', error);
+    }
+}
+
+// 更新统计信息
+function updateLogStats(stats) {
+    if (!stats) return;
+    
+    document.getElementById('logStatTotal').textContent = stats.filtered || 0;
+    document.getElementById('logStatInfo').textContent = stats.byLevel?.INFO || 0;
+    document.getElementById('logStatWarn').textContent = stats.byLevel?.WARN || 0;
+    document.getElementById('logStatError').textContent = stats.byLevel?.ERROR || 0;
+    document.getElementById('logCountBadge').textContent = `${stats.filtered || 0}条`;
+}
+
+// 显示日志列表
+function displayLogs(logs, pagination) {
+    const tbody = document.getElementById('logListBody');
+    const emptyDiv = document.getElementById('logListEmpty');
+
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = '';
+        emptyDiv.classList.remove('d-none');
+        return;
+    }
+
+    emptyDiv.classList.add('d-none');
+
+    // 级别样式映射
+    const levelBadgeClass = {
+        'INFO': 'bg-info',
+        'WARN': 'bg-warning text-dark',
+        'ERROR': 'bg-danger'
+    };
+
+    // 操作类型图标映射
+    const actionIconMap = {
+        '用户登录': 'bi-box-arrow-in-right',
+        '用户登出': 'bi-box-arrow-right',
+        '创建用户': 'bi-person-plus',
+        '更新用户': 'bi-person-gear',
+        '删除用户': 'bi-person-x',
+        '切换用户状态': 'bi-person-check',
+        '修改密码': 'bi-key',
+        '创建商品': 'bi-plus-circle',
+        '更新商品': 'bi-pencil-square',
+        '删除商品': 'bi-trash',
+        '入库操作': 'bi-arrow-down-circle text-success',
+        '出库操作': 'bi-arrow-up-circle text-danger',
+        '撤销入库': 'bi-arrow-counterclockwise',
+        '撤销出库': 'bi-arrow-counterclockwise',
+        '修改入库': 'bi-pencil',
+        '修改出库': 'bi-pencil',
+        '查看入库记录': 'bi-list',
+        '查看出库记录': 'bi-list',
+        '查看库存报表': 'bi-table',
+        '查询商品明细': 'bi-search',
+        '获取出入库方式': 'bi-arrow-left-right',
+        '获取商品批次': 'bi-boxes',
+        '获取供应商列表': 'bi-truck',
+        '获取客户列表': 'bi-people',
+        '创建备份': 'bi-save',
+        '恢复备份': 'bi-arrow-counterclockwise',
+        '删除备份': 'bi-trash',
+        '清理数据': 'bi-exclamation-triangle',
+        '更新设置': 'bi-gear'
+    };
+
+    tbody.innerHTML = logs.map((log, index) => {
+        const icon = actionIconMap[log.action] || 'bi-circle';
+        return `
+        <tr class="align-middle">
+            <td class="font-monospace small text-nowrap">${log.timestamp}</td>
+            <td><span class="badge ${levelBadgeClass[log.level] || 'bg-secondary'}">${log.level}</span></td>
+            <td>
+                <span class="text-primary fw-bold">${log.operator}</span>
+                ${log.operatorId ? `<span class="text-muted small">(#${log.operatorId})</span>` : ''}
+            </td>
+            <td>
+                <i class="bi ${icon} me-1"></i>${log.action}
+            </td>
+            <td class="text-truncate" style="max-width: 180px;" title="${log.target || ''}">
+                ${log.target ? `<span class="badge bg-light text-dark border">${log.target}</span>` : '-'}
+            </td>
+            <td class="text-truncate" style="max-width: 200px;" title="${log.description || ''}">
+                ${log.description || '-'}
+            </td>
+            <td class="text-center">
+                <button class="btn btn-sm btn-outline-info" onclick="showLogDetail(${index})" title="查看详情">
+                    <i class="bi bi-eye"></i>
+                </button>
+            </td>
+        </tr>
+    `}).join('');
+}
+
+// 更新分页控件
+function updateLogPagination(pagination) {
+    const paginationNav = document.getElementById('logPagination');
+    const prevBtn = document.getElementById('logPrevPage');
+    const nextBtn = document.getElementById('logNextPage');
+    const pageInfo = document.getElementById('logPageInfo');
+
+    if (pagination.totalPages <= 1) {
+        paginationNav.classList.add('d-none');
+        return;
+    }
+
+    paginationNav.classList.remove('d-none');
+    pageInfo.innerHTML = `第 ${pagination.page} / ${pagination.totalPages} 页 <span class="text-muted">(${pagination.total}条)</span>`;
+
+    if (pagination.page <= 1) {
+        prevBtn.classList.add('disabled');
+    } else {
+        prevBtn.classList.remove('disabled');
+    }
+
+    if (pagination.page >= pagination.totalPages) {
+        nextBtn.classList.add('disabled');
+    } else {
+        nextBtn.classList.remove('disabled');
+    }
+}
+
+// 切换日志页码
+function changeLogPage(delta) {
+    currentLogPage += delta;
+    if (currentLogPage < 1) currentLogPage = 1;
+    loadLogs();
+}
+
+// 重置筛选条件
+function resetLogFilters() {
+    document.getElementById('logDateFilter').value = 'today';
+    document.getElementById('logLevelFilter').value = 'all';
+    document.getElementById('logActionFilter').value = 'all';
+    document.getElementById('logOperatorFilter').value = '';
+    document.getElementById('logOperatorIdFilter').value = '';
+    document.getElementById('logTargetFilter').value = '';
+    document.getElementById('logKeywordFilter').value = '';
+    document.getElementById('logStartTime').value = '';
+    document.getElementById('logEndTime').value = '';
+    currentLogPage = 1;
+    loadLogs();
+}
+
+// 切换日志视图（表格/原始）
+async function toggleLogView() {
+    const viewMode = document.querySelector('input[name="logViewMode"]:checked').value;
+    const tableView = document.getElementById('logTableView');
+    const rawView = document.getElementById('logRawView');
+
+    if (viewMode === 'table') {
+        tableView.classList.remove('d-none');
+        rawView.classList.add('d-none');
+        loadLogs();
+    } else {
+        tableView.classList.add('d-none');
+        rawView.classList.remove('d-none');
+        loadRawLogs();
+    }
+}
+
+// 加载原始日志
+async function loadRawLogs() {
+    const dateFilter = document.getElementById('logDateFilter').value;
+
+    try {
+        const response = await fetch(`/api/logs/raw?date=${dateFilter}`);
+        const data = await response.json();
+
+        const rawContent = document.getElementById('logRawContent');
+        rawContent.textContent = data.content || '暂无日志内容';
+    } catch (error) {
+        console.error('加载原始日志失败:', error);
+        document.getElementById('logRawContent').textContent = '加载失败: ' + error.message;
+    }
+}
+
+// 显示日志详情
+function showLogDetail(index) {
+    const log = currentLogs[index];
+    if (!log) return;
+
+    document.getElementById('logDetailTime').textContent = log.timestamp;
+    document.getElementById('logDetailLevel').innerHTML = `<span class="badge bg-${log.level === 'INFO' ? 'info' : log.level === 'WARN' ? 'warning text-dark' : 'danger'}">${log.level}</span>`;
+    document.getElementById('logDetailOperator').innerHTML = `${log.operator} ${log.operatorId ? `<span class="text-muted">(ID: ${log.operatorId})</span>` : ''}`;
+    document.getElementById('logDetailAction').textContent = log.action;
+    document.getElementById('logDetailTarget').innerHTML = log.target ? `<span class="badge bg-light text-dark border">${log.target}</span>` : '-';
+    document.getElementById('logDetailDescription').textContent = log.description || '-';
+    document.getElementById('logDetailExtra').textContent = log.extra ? JSON.stringify(log.extra, null, 2) : '无';
+
+    const modal = new bootstrap.Modal(document.getElementById('logDetailModal'));
+    modal.show();
+}
+
+// 监听日志选项卡激活事件，自动加载日志
+document.addEventListener('shown.bs.tab', function (event) {
+    if (event.target.id === 'logs-tab') {
+        loadLogs();
+    }
+});

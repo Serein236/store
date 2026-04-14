@@ -8,6 +8,7 @@ const { requireLogin, checkLoggedIn } = require('./middleware/auth');
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
+const logRoutes = require('./routes/logRoutes');
 const logger = require('./utils/logger');
 
 const app = express();
@@ -24,6 +25,7 @@ app.use(checkLoggedIn); // 全局登录状态检查
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api', inventoryRoutes);
+app.use('/api/logs', logRoutes);
 
 // 保护所有需要登录的页面
 const protectedPages = [
